@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
 const BASE_URL = "https://americas.api.riotgames.com";
@@ -89,7 +90,7 @@ async function getAccount(gameName: string, tagLine: string) {
       throw new Error(`Request failed with ${res.status}: ${await res.text()}`);
     }
 
-    const data = await res.json();
+    const data = await res.json() as Record<string, unknown>;
     return NextResponse.json(data);
   } catch (err) {
     console.error("Error fetching account:", err);
@@ -104,8 +105,8 @@ async function getMatchHistory(puuid: string, searchParams: URLSearchParams) {
   const params = new URLSearchParams();
   params.append('api_key', API_KEY);
   
-  const start = searchParams.get('start') || '0';
-  const count = searchParams.get('count') || '100';
+  const start = searchParams.get('start') ?? '0';
+  const count = searchParams.get('count') ?? '100';
   params.append('start', start);
   params.append('count', count);
   
@@ -127,7 +128,7 @@ async function getMatchHistory(puuid: string, searchParams: URLSearchParams) {
       throw new Error(`HTTP ${res.status}: ${await res.text()}`);
     }
     
-    const matchIds = await res.json();
+    const matchIds = await res.json() as string[];
     return NextResponse.json({ matchIds });
   } catch (err) {
     console.error("Failed to fetch match IDs:", err);

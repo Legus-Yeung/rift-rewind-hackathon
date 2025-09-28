@@ -19,5 +19,4 @@ async function fetchMatchIds() {
   }
 }
 
-// Run it
 fetchMatchIds();

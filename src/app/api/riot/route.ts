@@ -1,7 +1,13 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
+const API_KEY = process.env.RIOT_API_KEY;
+
+if (!API_KEY) {
+  throw new Error('RIOT_API_KEY environment variable is not set');
+}
+
+const riotApiKey: string = API_KEY;
 const BASE_URL = "https://americas.api.riotgames.com";
 
 /**
@@ -27,11 +33,27 @@ const BASE_URL = "https://americas.api.riotgames.com";
  *    - queue: Queue ID filter (mutually inclusive with type)
  *    - type: Match type filter - "ranked" (mutually inclusive with queue)
  * 
+ * 3. Match Info:
+ *    GET /api/riot?action=match-info&matchId=<matchId>
+ *    Returns detailed match information
+ *    
+ *    Required parameters:
+ *    - matchId: Match identifier (e.g., "NA1_5371575881")
+ * 
+ * 4. Match Timeline:
+ *    GET /api/riot?action=match-timeline&matchId=<matchId>
+ *    Returns match timeline data with events
+ *    
+ *    Required parameters:
+ *    - matchId: Match identifier (e.g., "NA1_5371575881")
+ * 
  * Examples:
  * - Basic match history: /api/riot?action=match-history&puuid=<puuid>
  * - Recent 20 matches: /api/riot?action=match-history&puuid=<puuid>&count=20
  * - Ranked matches only: /api/riot?action=match-history&puuid=<puuid>&type=ranked
  * - Matches from last week: /api/riot?action=match-history&puuid=<puuid>&startTime=<timestamp>
+ * - Match details: /api/riot?action=match-info&matchId=NA1_5371575881
+ * - Match timeline: /api/riot?action=match-timeline&matchId=NA1_5371575881
  */
 
 export async function GET(request: NextRequest) {
@@ -40,6 +62,7 @@ export async function GET(request: NextRequest) {
   const gameName = searchParams.get('gameName');
   const tagLine = searchParams.get('tagLine');
   const puuid = searchParams.get('puuid');
+  const matchId = searchParams.get('matchId');
 
   try {
     switch (action) {
@@ -61,9 +84,27 @@ export async function GET(request: NextRequest) {
         }
         return await getMatchHistory(puuid, searchParams);
 
+      case 'match-info':
+        if (!matchId) {
+          return NextResponse.json(
+            { error: 'matchId is required for match info lookup' },
+            { status: 400 }
+          );
+        }
+        return await getMatchInfo(matchId);
+
+      case 'match-timeline':
+        if (!matchId) {
+          return NextResponse.json(
+            { error: 'matchId is required for match timeline lookup' },
+            { status: 400 }
+          );
+        }
+        return await getMatchTimeline(matchId);
+
       default:
         return NextResponse.json(
-          { error: 'Invalid action. Use "account" or "match-history"' },
+          { error: 'Invalid action. Use "account", "match-history", "match-info", or "match-timeline"' },
           { status: 400 }
         );
     }
@@ -82,7 +123,7 @@ async function getAccount(gameName: string, tagLine: string) {
   try {
     const res = await fetch(url, {
       headers: {
-        "X-Riot-Token": API_KEY
+        "X-Riot-Token": riotApiKey
       }
     });
 
@@ -103,7 +144,7 @@ async function getAccount(gameName: string, tagLine: string) {
 
 async function getMatchHistory(puuid: string, searchParams: URLSearchParams) {
   const params = new URLSearchParams();
-  params.append('api_key', API_KEY);
+  params.append('api_key', riotApiKey);
   
   const start = searchParams.get('start') ?? '0';
   const count = searchParams.get('count') ?? '100';
@@ -134,6 +175,46 @@ async function getMatchHistory(puuid: string, searchParams: URLSearchParams) {
     console.error("Failed to fetch match IDs:", err);
     return NextResponse.json(
       { error: 'Failed to fetch match history' },
+      { status: 500 }
+    );
+  }
+}
+
+async function getMatchInfo(matchId: string) {
+  const url = `${BASE_URL}/lol/match/v5/matches/${matchId}?api_key=${riotApiKey}`;
+  
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    }
+    
+    const matchInfo = await res.json() as Record<string, unknown>;
+    return NextResponse.json(matchInfo);
+  } catch (err) {
+    console.error("Failed to fetch match info:", err);
+    return NextResponse.json(
+      { error: 'Failed to fetch match info' },
+      { status: 500 }
+    );
+  }
+}
+
+async function getMatchTimeline(matchId: string) {
+  const url = `${BASE_URL}/lol/match/v5/matches/${matchId}/timeline?api_key=${riotApiKey}`;
+  
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    }
+    
+    const timeline = await res.json() as Record<string, unknown>;
+    return NextResponse.json(timeline);
+  } catch (err) {
+    console.error("Failed to fetch match timeline:", err);
+    return NextResponse.json(
+      { error: 'Failed to fetch match timeline' },
       { status: 500 }
     );
   }

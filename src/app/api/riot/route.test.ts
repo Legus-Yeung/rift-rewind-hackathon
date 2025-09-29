@@ -1,6 +1,25 @@
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 
+// Type definitions for API responses
+interface ErrorResponse {
+  error: string;
+}
+
+interface AccountResponse {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+}
+
+interface MatchHistoryResponse {
+  matchIds: string[];
+}
+
+interface MatchInfoResponse {
+  metadata: Record<string, unknown>;
+}
+
 // Mock fetch globally
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -10,7 +29,7 @@ describe("GET default case", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe(
@@ -26,7 +45,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe(
@@ -40,7 +59,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe(
@@ -48,7 +67,7 @@ describe("GET account", () => {
     );
   });
   it("returns 200 with account details if valid gameName and tagLine are set", async () => {
-    const mockResponse = {
+    const mockResponse: AccountResponse = {
       puuid: "12345",
       gameName: "TestUser",
       tagLine: "testTag",
@@ -77,7 +96,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as AccountResponse;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -114,7 +133,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(500);
     expect(json.error).toEqual("Failed to fetch account data");
@@ -127,14 +146,14 @@ describe("GET match-history", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe("puuid is required for match history lookup");
   });
   it("returns 200 with match history if valid puuid", async () => {
     const matches = ["NA_testmatch1", "NA_testmatch2"];
-    const mockResponse = { matchIds: matches };
+    const mockResponse: MatchHistoryResponse = { matchIds: matches };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => matches,
@@ -159,7 +178,7 @@ describe("GET match-history", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as MatchHistoryResponse;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -195,7 +214,7 @@ describe("GET match-history", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(500);
     expect(json.error).toEqual("Failed to fetch match history");
@@ -208,13 +227,13 @@ describe("GET match-info", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe("matchId is required for match info lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse = { metadata: {} };
+    const mockResponse: MatchInfoResponse = { metadata: {} };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
@@ -239,7 +258,7 @@ describe("GET match-info", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as MatchInfoResponse;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -274,7 +293,7 @@ describe("GET match-info", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(500);
     expect(json.error).toEqual("Failed to fetch match info");
@@ -287,13 +306,13 @@ describe("GET match-timeline", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(400);
     expect(json.error).toBe("matchId is required for match timeline lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse = { metadata: {} };
+    const mockResponse: MatchInfoResponse = { metadata: {} };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
@@ -318,7 +337,7 @@ describe("GET match-timeline", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as MatchInfoResponse;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -353,7 +372,7 @@ describe("GET match-timeline", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = await response.json();
+    const json = await response.json() as ErrorResponse;
 
     expect(response.status).toBe(500);
     expect(json.error).toEqual("Failed to fetch match timeline");

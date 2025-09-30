@@ -1,0 +1,47 @@
+{
+  "playerOverview": {
+    "summonerName": "cant type#1998",
+    "rank": "Challenger",
+    "tierProgression": ["Diamond I", "Master", "Grandmaster", "Challenger"],
+    "totalGames": 784,
+    "wins": 458,
+    "losses": 326,
+    "winRate": 58.3
+  },
+  "championStats": [
+    { "name": "Riven", "wins": 260, "played": 399, "winRate": 65.2 },
+    { "name": "Vayne", "wins": 40, "played": 74, "winRate": 54.1 },
+    { "name": "Kayle", "wins": 40, "played": 64, "winRate": 62.5 },
+    { "name": "Yasuo", "wins": 35, "played": 90, "winRate": 38.8 },
+    { "name": "Sett", "wins": 50, "played": 120, "winRate": 41.6 }
+  ],
+  "monthlyStats": [
+    { "month": "January", "games": 45, "winRate": 60.0 },
+    { "month": "February", "games": 62, "winRate": 55.5 },
+    { "month": "March", "games": 50, "winRate": 63.0 },
+    { "month": "April", "games": 41, "winRate": 52.0 },
+    { "month": "May", "games": 70, "winRate": 61.2 },
+    { "month": "June", "games": 89, "winRate": 59.8 },
+    { "month": "July", "games": 80, "winRate": 56.4 },
+    { "month": "August", "games": 95, "winRate": 60.5 },
+    { "month": "September", "games": 100, "winRate": 57.9 },
+    { "month": "October", "games": 92, "winRate": 55.0 },
+    { "month": "November", "games": 60, "winRate": 62.1 },
+    { "month": "December", "games": 50, "winRate": 64.3 }
+  ],
+  "highlights": {
+    "mostPlayed": "Riven",
+    "bestWinRateChampion": "Kayle (62.5%)",
+    "longestWinStreak": 8,
+    "shortestGame": "18m 23s (as Vayne)",
+    "longestGame": "54m 12s (as Yasuo)",
+    "clutchMatch": "Match ID 1234567890 vs Challenger Zed",
+    "firstPentakill": "Sett - April",
+    "mostKillsInGame": 27
+  },
+  "friendsComparison": [
+    { "friend": "Heisenberg#1234", "totalGames": 500, "winRate": 52.1, "rank": "Master" },
+    { "friend": "RavenCat#5678", "totalGames": 300, "winRate": 60.3, "rank": "Grandmaster" },
+    { "friend": "LuxMain#2020", "totalGames": 250, "winRate": 49.8, "rank": "Diamond I" }
+  ]
+}

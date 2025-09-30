@@ -1,5 +1,5 @@
 const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
-const puuid = "tcFL7pPiMPSiofDC6iXUP09DTGMX5iDkgHf6jPpEvt7Y535Y3UQGA2iq1N5a30QxwelYmMY39YVWFA";
+const puuid = "6aRgHzMxyiZYg1bLGe7lAzgV8dgrU2OH5kERLffwt3Aaljz62aub2CgLJ4rm0DhGby37StURRQBvOg";
 const baseUrl = "https://americas.api.riotgames.com";
 const endpoint = `/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=100`;
 
@@ -19,5 +19,4 @@ async function fetchMatchIds() {
   }
 }
 
-// Run it
 fetchMatchIds();

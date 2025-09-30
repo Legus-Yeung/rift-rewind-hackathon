@@ -1,0 +1,25 @@
+Linux/MacOS:
+curl "http://localhost:3000/api/riot?action=account&gameName=[gameName]&tagLine=[tagLine]"
+curl "http://localhost:3000/api/riot?action=match-history&puuid=[puuid]"
+curl "http://localhost:3000/api/riot?action=match-info&matchId=[matchId]"
+curl "http://localhost:3000/api/riot?action=match-timeline&matchId=[matchId]"
+
+Windows:
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=account&gameName=[gameName]&tagLine=[tagLine]"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-history&puuid=[puuid]"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-info&matchId=[matchId]"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-timeline&matchId=[matchId]"
+
+Working example:
+
+Linux/MacOS:
+curl "http://localhost:3000/api/riot?action=account&gameName=c9loki&tagLine=kr3"
+curl "http://localhost:3000/api/riot?action=match-history&puuid=6aRgHzMxyiZYg1bLGe7lAzgV8dgrU2OH5kERLffwt3Aaljz62aub2CgLJ4rm0DhGby37StURRQBvOg"
+curl "http://localhost:3000/api/riot?action=match-info&matchId=NA1_5371575881"
+curl "http://localhost:3000/api/riot?action=match-timeline&matchId=NA1_5371575881"
+
+Windows:
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=account&gameName=c9loki&tagLine=kr3"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-history&puuid=6aRgHzMxyiZYg1bLGe7lAzgV8dgrU2OH5kERLffwt3Aaljz62aub2CgLJ4rm0DhGby37StURRQBvOg"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-info&matchId=NA1_5371575881"
+Invoke-RestMethod -Uri "http://localhost:3000/api/riot?action=match-timeline&matchId=NA1_5371575881"

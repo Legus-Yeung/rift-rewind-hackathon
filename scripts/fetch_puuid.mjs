@@ -1,5 +1,5 @@
 const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
-const url = "https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/IcemanRai/ICE";
+const url = "https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/c9loki/kr3";
 
 async function getAccount() {
   try {

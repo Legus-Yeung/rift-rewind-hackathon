@@ -1,10 +1,10 @@
-const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
+const RIOT_API_KEY = "";
 const puuid = "6aRgHzMxyiZYg1bLGe7lAzgV8dgrU2OH5kERLffwt3Aaljz62aub2CgLJ4rm0DhGby37StURRQBvOg";
 const baseUrl = "https://americas.api.riotgames.com";
 const endpoint = `/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=100`;
 
 async function fetchMatchIds() {
-  const url = `${baseUrl}${endpoint}&api_key=${API_KEY}`;
+  const url = `${baseUrl}${endpoint}&api_key=${RIOT_API_KEY}`;
   try {
     const res = await fetch(url);
     if (!res.ok) {

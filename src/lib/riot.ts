@@ -26,7 +26,7 @@ const BASE_URL = "https://americas.api.riotgames.com";
 export async function fetchAccount(
   gameName: string,
   tagLine: string,
-): Promise<RiotAccountResponse> {
+): Promise<Response> {
   const url = `${BASE_URL}/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`;
 
   const res = await fetch(url, {
@@ -35,11 +35,7 @@ export async function fetchAccount(
     },
   });
 
-  if (!res.ok) {
-    throw new Error(`Request failed with ${res.status}: ${await res.text()}`);
-  }
-  const data = (await res.json()) as RiotAccountResponse;
-  return data;
+  return res;
 }
 
 /**
@@ -54,7 +50,7 @@ export async function fetchAccount(
 export async function fetchMatchHistory(
   puuid: string,
   searchParams: URLSearchParams,
-): Promise<RiotMatchHistoryResponse> {
+): Promise<Response> {
   const params = new URLSearchParams();
   params.append("api_key", riotApiKey);
 
@@ -76,12 +72,7 @@ export async function fetchMatchHistory(
   const url = `${BASE_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids?${params.toString()}`;
 
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
-
-  const matchIds = (await res.json()) as RiotMatchHistoryResponse;
-  return matchIds;
+  return res;
 }
 
 /**
@@ -94,16 +85,11 @@ export async function fetchMatchHistory(
  */
 export async function fetchMatchInfo(
   matchId: string,
-): Promise<RiotMatchInfoResponse> {
+): Promise<Response> {
   const url = `${BASE_URL}/lol/match/v5/matches/${matchId}?api_key=${riotApiKey}`;
 
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
-
-  const matchInfo = (await res.json()) as RiotMatchInfoResponse;
-  return matchInfo;
+  return res;
 }
 
 /**
@@ -116,14 +102,9 @@ export async function fetchMatchInfo(
  */
 export async function fetchMatchTimeline(
   matchId: string,
-): Promise<RiotMatchTimelineResponse> {
+): Promise<Response> {
   const url = `${BASE_URL}/lol/match/v5/matches/${matchId}/timeline?api_key=${riotApiKey}`;
 
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
-
-  const timeline = (await res.json()) as RiotMatchTimelineResponse;
-  return timeline;
+  return res;
 }

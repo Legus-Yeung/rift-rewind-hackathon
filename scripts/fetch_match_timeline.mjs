@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
+const RIOT_API_KEY = "";
 const matchId = "NA1_5371642334";
 
 const baseUrl = "https://americas.api.riotgames.com";

@@ -1,11 +1,11 @@
-const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
+const RIOT_API_KEY = "";
 const url = "https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/c9loki/kr3";
 
 async function getAccount() {
   try {
     const res = await fetch(url, {
       headers: {
-        "X-Riot-Token": API_KEY
+        "X-Riot-Token": RIOT_API_KEY
       }
     });
 

@@ -6,15 +6,6 @@ import {
   fetchMatchInfo,
   fetchMatchTimeline,
 } from "~/lib/riot";
-
-import type {
-  RiotAccountResponse,
-  RiotMatchHistoryResponse,
-  RiotMatchInfoResponse,
-  RiotMatchTimelineResponse,
-} from "~/types/riot";
-
-import type { ErrorResponse } from "~/types/error";
 /**
  * Riot Games API Route
  *
@@ -128,65 +119,42 @@ export async function GET(request: NextRequest) {
 async function getAccount(
   gameName: string,
   tagLine: string,
-): Promise<NextResponse<RiotAccountResponse | ErrorResponse>> {
-  try {
-    const data: RiotAccountResponse = await fetchAccount(gameName, tagLine);
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("Error fetching account:", err);
-    return NextResponse.json<ErrorResponse>(
-      { error: "Failed to fetch account data" },
-      { status: 500 },
-    );
-  }
+): Promise<NextResponse> {
+  const response = await fetchAccount(gameName, tagLine);
+  
+  const responseClone = response.clone();
+  const data = await responseClone.json();
+  
+  return NextResponse.json(data, { status: response.status });
 }
 
 async function getMatchHistory(
   puuid: string,
   searchParams: URLSearchParams,
-): Promise<NextResponse<RiotMatchHistoryResponse | ErrorResponse>> {
-  try {
-    const data: RiotMatchHistoryResponse = await fetchMatchHistory(
-      puuid,
-      searchParams,
-    );
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("Failed to fetch match IDs:", err);
-    return NextResponse.json<ErrorResponse>(
-      { error: "Failed to fetch match history" },
-      { status: 500 },
-    );
-  }
+): Promise<NextResponse> {
+  const response = await fetchMatchHistory(puuid, searchParams);
+  const responseClone = response.clone();
+  const data = await responseClone.json();
+  
+  return NextResponse.json(data, { status: response.status });
 }
 
 async function getMatchInfo(
   matchId: string,
-): Promise<NextResponse<RiotMatchInfoResponse | ErrorResponse>> {
-  try {
-    const matchInfo: RiotMatchInfoResponse = await fetchMatchInfo(matchId);
-    return NextResponse.json(matchInfo);
-  } catch (err) {
-    console.error("Failed to fetch match info:", err);
-    return NextResponse.json<ErrorResponse>(
-      { error: "Failed to fetch match info" },
-      { status: 500 },
-    );
-  }
+): Promise<NextResponse> {
+  const response = await fetchMatchInfo(matchId);
+  const responseClone = response.clone();
+  const data = await responseClone.json();
+  
+  return NextResponse.json(data, { status: response.status });
 }
 
 async function getMatchTimeline(
   matchId: string,
-): Promise<NextResponse<RiotMatchTimelineResponse | ErrorResponse>> {
-  try {
-    const timeline: RiotMatchTimelineResponse =
-      await fetchMatchTimeline(matchId);
-    return NextResponse.json(timeline);
-  } catch (err) {
-    console.error("Failed to fetch match timeline:", err);
-    return NextResponse.json<ErrorResponse>(
-      { error: "Failed to fetch match timeline" },
-      { status: 500 },
-    );
-  }
+): Promise<NextResponse> {
+  const response = await fetchMatchTimeline(matchId);
+  const responseClone = response.clone();
+  const data = await responseClone.json();
+  
+  return NextResponse.json(data, { status: response.status });
 }

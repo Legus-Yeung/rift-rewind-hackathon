@@ -69,7 +69,8 @@ describe("GET account", () => {
       gameName: "TestUser",
       tagLine: "testTag",
     };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: true,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -78,7 +79,6 @@ describe("GET account", () => {
       statusText: "OK",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -86,7 +86,10 @@ describe("GET account", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=account&gameName=TestUser&tagLine=testTag",
     );
@@ -98,7 +101,7 @@ describe("GET account", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
   });
-  it("returns 500 if invalid gameName and tagLine are set", async () => {
+  it("returns 404 if invalid gameName and tagLine are set", async () => {
     const mockResponse = {
       status: {
         status_code: 404,
@@ -106,7 +109,8 @@ describe("GET account", () => {
           "Data not found - No results found for player with riot id TestUser#testTag",
       },
     };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: false,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -115,7 +119,6 @@ describe("GET account", () => {
       statusText: "Not Found",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -123,17 +126,20 @@ describe("GET account", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=account&gameName=TestUser&tagLine=testTag",
     );
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as ErrorResponse;
+    const json = (await response.json());
 
-    expect(response.status).toBe(500);
-    expect(json.error).toEqual("Failed to fetch account data");
+    expect(response.status).toBe(404);
+    expect(json).toEqual(mockResponse);
   });
 });
 
@@ -154,7 +160,8 @@ describe("GET match-history", () => {
   it("returns 200 with match history if valid puuid", async () => {
     const matches = ["NA_testmatch1", "NA_testmatch2"];
     const mockResponse: RiotMatchHistoryResponse = matches;
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: true,
       json: async () => matches,
       headers: new Headers(),
@@ -163,7 +170,6 @@ describe("GET match-history", () => {
       statusText: "OK",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -171,7 +177,10 @@ describe("GET match-history", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-history&puuid=12345",
     );
@@ -183,14 +192,15 @@ describe("GET match-history", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
   });
-  it("returns 500 if invalid puuid is set", async () => {
+  it("returns 404 if invalid puuid is set", async () => {
     const mockResponse = {
       status: {
         message: "Bad Request - Exception decrypting 12345",
         status_code: 400,
       },
     };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: false,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -199,7 +209,6 @@ describe("GET match-history", () => {
       statusText: "Not Found",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -207,17 +216,20 @@ describe("GET match-history", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-history&puuid=12345",
     );
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as ErrorResponse;
+    const json = (await response.json());
 
-    expect(response.status).toBe(500);
-    expect(json.error).toEqual("Failed to fetch match history");
+    expect(response.status).toBe(404);
+    expect(json).toEqual(mockResponse);
   });
 });
 
@@ -237,7 +249,8 @@ describe("GET match-info", () => {
   });
   it("returns 200 with match info if valid match id", async () => {
     const mockResponse: RiotMatchInfoResponse = { metadata: {}, info: {} };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: true,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -246,7 +259,6 @@ describe("GET match-info", () => {
       statusText: "OK",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -254,7 +266,10 @@ describe("GET match-info", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-info&matchId=NA_testmatch",
     );
@@ -266,13 +281,14 @@ describe("GET match-info", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
   });
-  it("returns 500 if invalid match id is set", async () => {
+  it("returns 404 if invalid match id is set", async () => {
     const mockResponse = {
       httpStatus: 404,
       errorCode: "RESOURCE_NOT_FOUND",
       message: "match file not found",
     };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: false,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -281,7 +297,6 @@ describe("GET match-info", () => {
       statusText: "Not Found",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -289,17 +304,20 @@ describe("GET match-info", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-info&matchId=NA_testmatch",
     );
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as ErrorResponse;
+    const json = (await response.json());
 
-    expect(response.status).toBe(500);
-    expect(json.error).toEqual("Failed to fetch match info");
+    expect(response.status).toBe(404);
+    expect(json).toEqual(mockResponse);
   });
 });
 
@@ -319,7 +337,8 @@ describe("GET match-timeline", () => {
   });
   it("returns 200 with match info if valid match id", async () => {
     const mockResponse: RiotMatchTimelineResponse = { metadata: {}, info: {} };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: true,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -328,7 +347,6 @@ describe("GET match-timeline", () => {
       statusText: "OK",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -336,7 +354,10 @@ describe("GET match-timeline", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-timeline&matchId=NA_testmatch",
     );
@@ -348,13 +369,14 @@ describe("GET match-timeline", () => {
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
   });
-  it("returns 500 if invalid match id is set", async () => {
+  it("returns 404 if invalid match id is set", async () => {
     const mockResponse = {
       httpStatus: 404,
       errorCode: "RESOURCE_NOT_FOUND",
       message: "match file not found",
     };
-    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
+    
+    const mockResponseObj = {
       ok: false,
       json: async () => mockResponse,
       headers: new Headers(),
@@ -363,7 +385,6 @@ describe("GET match-timeline", () => {
       statusText: "Not Found",
       type: "basic",
       url: "",
-      clone: jest.fn(),
       body: null,
       bodyUsed: false,
       arrayBuffer: jest.fn(),
@@ -371,16 +392,19 @@ describe("GET match-timeline", () => {
       formData: jest.fn(),
       text: jest.fn(),
       bytes: jest.fn(),
-    } as unknown as Response);
+      clone: jest.fn().mockReturnThis(),
+    };
+    
+    (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue(mockResponseObj as unknown as Response);
     const url = new URL(
       "http://localhost/api/riot?action=match-timeline&matchId=NA_testmatch",
     );
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as ErrorResponse;
+    const json = (await response.json());
 
-    expect(response.status).toBe(500);
-    expect(json.error).toEqual("Failed to fetch match timeline");
+    expect(response.status).toBe(404);
+    expect(json).toEqual(mockResponse);
   });
 });

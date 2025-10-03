@@ -1,10 +1,3 @@
-import type {
-  RiotAccountResponse,
-  RiotMatchHistoryResponse,
-  RiotMatchInfoResponse,
-  RiotMatchTimelineResponse,
-} from "~/types/riot";
-
 const API_KEY = process.env.RIOT_API_KEY;
 
 if (!API_KEY) {

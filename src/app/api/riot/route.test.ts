@@ -136,7 +136,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json());
+    const json = (await response.json()) as unknown;
 
     expect(response.status).toBe(404);
     expect(json).toEqual(mockResponse);
@@ -226,7 +226,7 @@ describe("GET match-history", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json());
+    const json = (await response.json()) as unknown;
 
     expect(response.status).toBe(404);
     expect(json).toEqual(mockResponse);
@@ -314,7 +314,7 @@ describe("GET match-info", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json());
+    const json = (await response.json()) as unknown;
 
     expect(response.status).toBe(404);
     expect(json).toEqual(mockResponse);
@@ -402,7 +402,7 @@ describe("GET match-timeline", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json());
+    const json = (await response.json()) as unknown;
 
     expect(response.status).toBe(404);
     expect(json).toEqual(mockResponse);

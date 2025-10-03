@@ -123,7 +123,7 @@ async function getAccount(
   const response = await fetchAccount(gameName, tagLine);
   
   const responseClone = response.clone();
-  const data = await responseClone.json();
+  const data = await responseClone.json() as unknown;
   
   return NextResponse.json(data, { status: response.status });
 }
@@ -134,7 +134,7 @@ async function getMatchHistory(
 ): Promise<NextResponse> {
   const response = await fetchMatchHistory(puuid, searchParams);
   const responseClone = response.clone();
-  const data = await responseClone.json();
+  const data = await responseClone.json() as unknown;
   
   return NextResponse.json(data, { status: response.status });
 }
@@ -144,7 +144,7 @@ async function getMatchInfo(
 ): Promise<NextResponse> {
   const response = await fetchMatchInfo(matchId);
   const responseClone = response.clone();
-  const data = await responseClone.json();
+  const data = await responseClone.json() as unknown;
   
   return NextResponse.json(data, { status: response.status });
 }
@@ -154,7 +154,7 @@ async function getMatchTimeline(
 ): Promise<NextResponse> {
   const response = await fetchMatchTimeline(matchId);
   const responseClone = response.clone();
-  const data = await responseClone.json();
+  const data = await responseClone.json() as unknown;
   
   return NextResponse.json(data, { status: response.status });
 }

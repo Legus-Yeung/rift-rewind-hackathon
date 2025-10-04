@@ -15,6 +15,14 @@
     { "name": "Yasuo", "wins": 35, "played": 90, "winRate": 38.8 },
     { "name": "Sett", "wins": 50, "played": 120, "winRate": 41.6 }
   ],
+  "timeline": [
+    { "match": 1, "winRate": 45 },
+    { "match": 2, "winRate": 52 },
+    { "match": 3, "winRate": 60 },
+    { "match": 4, "winRate": 63 },
+    { "match": 5, "winRate": 65 },
+    { "match": 6, "winRate": 67 }
+  ],
   "monthlyStats": [
     { "month": "January", "games": 45, "winRate": 60.0 },
     { "month": "February", "games": 62, "winRate": 55.5 },
@@ -44,4 +52,6 @@
     { "friend": "RavenCat#5678", "totalGames": 300, "winRate": 60.3, "rank": "Grandmaster" },
     { "friend": "LuxMain#2020", "totalGames": 250, "winRate": 49.8, "rank": "Diamond I" }
   ]
+
+  
 }

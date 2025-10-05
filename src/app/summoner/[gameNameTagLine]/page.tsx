@@ -20,7 +20,7 @@ export default async function SummonerPage({
         <h1>Summoner PUUID: {data.puuid}</h1>
       </div>
     );
-  } catch (err) {
+  } catch {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         <h1>Bad Summoner</h1>

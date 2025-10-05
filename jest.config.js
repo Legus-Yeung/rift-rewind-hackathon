@@ -5,10 +5,16 @@ export default {
   clearMocks: true,
   setupFiles: ["<rootDir>/jest.setup.js"],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      tsconfig: {
-        types: ['jest', '@types/jest']
-      }
-    }]
-  }
+    "^.+\\.ts$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          types: ["jest", "@types/jest"],
+        },
+      },
+    ],
+  },
+  moduleNameMapper: {
+    "^~/(.*)$": "<rootDir>/src/$1",
+  },
 };

@@ -232,7 +232,13 @@ describe("GET match-info", () => {
     expect(json.error).toBe("matchId is required for match info lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse: MatchDto = { metadata: {}, info: {} };
+    const mockResponse: Partial<MatchDto> = {
+      metadata: {
+        dataVersion: "1",
+        matchId: "2",
+        participants: ["a", "b"],
+      },
+    };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
@@ -314,7 +320,13 @@ describe("GET match-timeline", () => {
     expect(json.error).toBe("matchId is required for match timeline lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse: TimelineDto = { metadata: {}, info: {} };
+    const mockResponse: Partial<TimelineDto> = {
+      metadata: {
+        dataVersion: "1",
+        matchId: "2",
+        participants: ["a", "b"],
+      },
+    };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,

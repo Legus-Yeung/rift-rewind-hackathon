@@ -5,16 +5,12 @@ import {
   fetchMatchHistory,
   fetchMatchInfo,
   fetchMatchTimeline,
-} from "~/lib/riot";
+} from "~/lib/riot/riot-api-utils";
 
-import type {
-  RiotAccountResponse,
-  RiotMatchHistoryResponse,
-  RiotMatchInfoResponse,
-  RiotMatchTimelineResponse,
-} from "~/types/riot";
-
-import type { ErrorResponse } from "~/types/error";
+import type { ErrorResponse } from "~/lib/api/responses/error.reponse";
+import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
+import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+import type { TimelineDto } from "~/lib/riot/dtos/timeline/timeline.dto";
 /**
  * Riot Games API Route
  *
@@ -128,9 +124,9 @@ export async function GET(request: NextRequest) {
 async function getAccount(
   gameName: string,
   tagLine: string,
-): Promise<NextResponse<RiotAccountResponse | ErrorResponse>> {
+): Promise<NextResponse<AccountDto | ErrorResponse>> {
   try {
-    const data: RiotAccountResponse = await fetchAccount(gameName, tagLine);
+    const data: AccountDto = await fetchAccount(gameName, tagLine);
     return NextResponse.json(data);
   } catch (err) {
     console.error("Error fetching account:", err);
@@ -144,12 +140,9 @@ async function getAccount(
 async function getMatchHistory(
   puuid: string,
   searchParams: URLSearchParams,
-): Promise<NextResponse<RiotMatchHistoryResponse | ErrorResponse>> {
+): Promise<NextResponse<string[] | ErrorResponse>> {
   try {
-    const data: RiotMatchHistoryResponse = await fetchMatchHistory(
-      puuid,
-      searchParams,
-    );
+    const data: string[] = await fetchMatchHistory(puuid, searchParams);
     return NextResponse.json(data);
   } catch (err) {
     console.error("Failed to fetch match IDs:", err);
@@ -162,9 +155,9 @@ async function getMatchHistory(
 
 async function getMatchInfo(
   matchId: string,
-): Promise<NextResponse<RiotMatchInfoResponse | ErrorResponse>> {
+): Promise<NextResponse<MatchDto | ErrorResponse>> {
   try {
-    const matchInfo: RiotMatchInfoResponse = await fetchMatchInfo(matchId);
+    const matchInfo: MatchDto = await fetchMatchInfo(matchId);
     return NextResponse.json(matchInfo);
   } catch (err) {
     console.error("Failed to fetch match info:", err);
@@ -177,10 +170,9 @@ async function getMatchInfo(
 
 async function getMatchTimeline(
   matchId: string,
-): Promise<NextResponse<RiotMatchTimelineResponse | ErrorResponse>> {
+): Promise<NextResponse<TimelineDto | ErrorResponse>> {
   try {
-    const timeline: RiotMatchTimelineResponse =
-      await fetchMatchTimeline(matchId);
+    const timeline: TimelineDto = await fetchMatchTimeline(matchId);
     return NextResponse.json(timeline);
   } catch (err) {
     console.error("Failed to fetch match timeline:", err);

@@ -3,14 +3,10 @@ import {
   fetchMatchHistory,
   fetchMatchInfo,
   fetchMatchTimeline,
-} from "~/lib/riot";
-
-import type {
-  RiotAccountResponse,
-  RiotMatchHistoryResponse,
-  RiotMatchInfoResponse,
-  RiotMatchTimelineResponse,
-} from "~/types/riot";
+} from "~/lib/riot/riot-api-utils";
+import type { AccountDto } from "./dtos/account/account.dto";
+import type { MatchDto } from "./dtos/match/match.dto";
+import type { TimelineDto } from "./dtos/timeline/timeline.dto";
 
 // Mock the global fetch function
 global.fetch = jest.fn();
@@ -22,7 +18,7 @@ describe("Riot API helpers", () => {
 
   describe("fetchAccount", () => {
     it("returns data when fetch succeeds", async () => {
-      const mockData: RiotAccountResponse = {
+      const mockData: AccountDto = {
         puuid: "puuid123",
         gameName: "Summoner",
         tagLine: "NA1",
@@ -53,7 +49,7 @@ describe("Riot API helpers", () => {
 
   describe("fetchMatchHistory", () => {
     it("returns match ids when fetch succeeds", async () => {
-      const mockData: RiotMatchHistoryResponse = ["NA1_123", "NA1_456"];
+      const mockData: string[] = ["NA1_123", "NA1_456"];
 
       (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
@@ -80,9 +76,13 @@ describe("Riot API helpers", () => {
 
   describe("fetchMatchInfo", () => {
     it("returns match info when fetch succeeds", async () => {
-      const mockData: RiotMatchInfoResponse = {
-        // populate with minimal fields needed for the type
-      } as RiotMatchInfoResponse;
+      const mockData: Partial<MatchDto> = {
+        metadata: {
+          dataVersion: "1",
+          matchId: "2",
+          participants: ["a", "b"],
+        },
+      };
 
       (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
@@ -107,9 +107,13 @@ describe("Riot API helpers", () => {
 
   describe("fetchMatchTimeline", () => {
     it("returns timeline data when fetch succeeds", async () => {
-      const mockData: RiotMatchTimelineResponse = {
-        // minimal fields for the type
-      } as RiotMatchTimelineResponse;
+      const mockData: Partial<TimelineDto> = {
+        metadata: {
+          dataVersion: "1",
+          matchId: "2",
+          participants: ["a", "b"],
+        },
+      };
 
       (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,

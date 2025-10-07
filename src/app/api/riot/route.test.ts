@@ -1,14 +1,10 @@
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 
-import type {
-  RiotAccountResponse,
-  RiotMatchHistoryResponse,
-  RiotMatchInfoResponse,
-  RiotMatchTimelineResponse,
-} from "~/types/riot";
-
-import type { ErrorResponse } from "~/types/error";
+import type { ErrorResponse } from "~/lib/api/responses/error.reponse";
+import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
+import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+import type { TimelineDto } from "~/lib/riot/dtos/timeline/timeline.dto";
 
 // Mock fetch globally
 const mockFetch = jest.fn();
@@ -64,7 +60,7 @@ describe("GET account", () => {
     );
   });
   it("returns 200 with account details if valid gameName and tagLine are set", async () => {
-    const mockResponse: RiotAccountResponse = {
+    const mockResponse: AccountDto = {
       puuid: "12345",
       gameName: "TestUser",
       tagLine: "testTag",
@@ -93,7 +89,7 @@ describe("GET account", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as RiotAccountResponse;
+    const json = (await response.json()) as AccountDto;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -153,7 +149,7 @@ describe("GET match-history", () => {
   });
   it("returns 200 with match history if valid puuid", async () => {
     const matches = ["NA_testmatch1", "NA_testmatch2"];
-    const mockResponse: RiotMatchHistoryResponse = matches;
+    const mockResponse: string[] = matches;
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => matches,
@@ -178,7 +174,7 @@ describe("GET match-history", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as RiotMatchHistoryResponse;
+    const json = (await response.json()) as string[];
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -236,7 +232,13 @@ describe("GET match-info", () => {
     expect(json.error).toBe("matchId is required for match info lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse: RiotMatchInfoResponse = { metadata: {}, info: {} };
+    const mockResponse: Partial<MatchDto> = {
+      metadata: {
+        dataVersion: "1",
+        matchId: "2",
+        participants: ["a", "b"],
+      },
+    };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
@@ -261,7 +263,7 @@ describe("GET match-info", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as RiotMatchInfoResponse;
+    const json = (await response.json()) as MatchDto;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);
@@ -318,7 +320,13 @@ describe("GET match-timeline", () => {
     expect(json.error).toBe("matchId is required for match timeline lookup");
   });
   it("returns 200 with match info if valid match id", async () => {
-    const mockResponse: RiotMatchTimelineResponse = { metadata: {}, info: {} };
+    const mockResponse: Partial<TimelineDto> = {
+      metadata: {
+        dataVersion: "1",
+        matchId: "2",
+        participants: ["a", "b"],
+      },
+    };
     (mockFetch as jest.MockedFunction<typeof fetch>).mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
@@ -343,7 +351,7 @@ describe("GET match-timeline", () => {
     const request = new NextRequest(url);
 
     const response = await GET(request);
-    const json = (await response.json()) as RiotMatchTimelineResponse;
+    const json = (await response.json()) as TimelineDto;
 
     expect(response.status).toBe(200);
     expect(json).toEqual(mockResponse);

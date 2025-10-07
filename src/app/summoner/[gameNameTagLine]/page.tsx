@@ -1,4 +1,4 @@
-import type { AccountDto } from "~/lib/riot/dtos/account.dto";
+import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 import { fetchAccount } from "~/lib/riot/riot-api-utils";
 
 export default async function SummonerPage({

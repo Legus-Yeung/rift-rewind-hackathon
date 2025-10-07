@@ -2,9 +2,9 @@ import { GET } from "./route";
 import { NextRequest } from "next/server";
 
 import type { ErrorResponse } from "~/lib/api/responses/error.reponse";
-import type { AccountDto } from "~/lib/riot/dtos/account.dto";
-import type { MatchDto } from "~/lib/riot/dtos/match.dto";
-import type { TimelineDto } from "~/lib/riot/dtos/timeline.dto";
+import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
+import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+import type { TimelineDto } from "~/lib/riot/dtos/timeline/timeline.dto";
 
 // Mock fetch globally
 const mockFetch = jest.fn();

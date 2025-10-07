@@ -1,6 +1,6 @@
-import type { AccountDto } from "./dtos/account.dto";
-import type { MatchDto } from "./dtos/match.dto";
-import type { TimelineDto } from "./dtos/timeline.dto";
+import type { AccountDto } from "./dtos/account/account.dto";
+import type { MatchDto } from "./dtos/match/match.dto";
+import type { TimelineDto } from "./dtos/timeline/timeline.dto";
 
 const API_KEY = process.env.RIOT_API_KEY;
 

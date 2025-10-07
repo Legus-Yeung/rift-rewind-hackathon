@@ -16,6 +16,10 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: z.string(),
     AUTH_GOOGLE_SECRET: z.string(),
     DATABASE_URL: z.string().url(),
+    RIOT_API_KEY: z.string(),
+    AWS_ACCESS_KEY_ID: z.string(),
+    AWS_SECRET_ACCESS_KEY: z.string(),
+    AWS_REGION: z.string().default("us-east-1"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -41,6 +45,10 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
+    RIOT_API_KEY: process.env.RIOT_API_KEY,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_REGION: process.env.AWS_REGION,
     NODE_ENV: process.env.NODE_ENV,
   },
   /**

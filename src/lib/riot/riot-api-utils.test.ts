@@ -3,7 +3,7 @@ import {
   fetchMatchHistory,
   fetchMatchInfo,
   fetchMatchTimeline,
-} from "~/lib/riot";
+} from "~/lib/riot/riot-api-utils";
 
 import type {
   RiotAccountResponse,

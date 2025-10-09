@@ -62,7 +62,7 @@ export default function DashboardPage() {
         return res.json();
       })
       .then((data) => {
-        setMockData(data);
+        setMockData(data as MockData);
         setLoading(false);
       })
       .catch((error) => {

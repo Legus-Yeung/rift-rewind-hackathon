@@ -9,9 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-export interface PieChartData {
-  [key: string]: string | number;
-}
+type PieChartData = Record<string, string | number>;
 
 interface PieChartProps {
   title: string;

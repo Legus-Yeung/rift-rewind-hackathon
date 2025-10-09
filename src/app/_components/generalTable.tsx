@@ -4,7 +4,7 @@ interface ColumnDef<T> {
   render?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
-interface TableProps<T extends Record<string, any>> {
+interface TableProps<T extends Record<string, number | string>> {
   data: T[];
   columns: ColumnDef<T>[];
 }
@@ -32,10 +32,9 @@ interface TableProps<T extends Record<string, any>> {
  * @param param0 - a {@link TableProps} with data for the chart
  * @returns a table
  */
-export default function GeneralTable<T extends Record<string, any>>({
-  data,
-  columns,
-}: TableProps<T>) {
+export default function GeneralTable<
+  T extends Record<string, number | string>,
+>({ data, columns }: TableProps<T>) {
   return (
     <table className="w-full table-auto border-collapse border border-gray-700">
       <thead>

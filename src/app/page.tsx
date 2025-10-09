@@ -17,6 +17,20 @@ export default async function Home() {
             Rift <span className="text-[hsl(280,100%,70%)]">Rewind</span>
           </h1>
           <SummonerInput />
+          <div className="flex gap-4">
+            <a
+              href="/dashboard"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg"
+            >
+              View Dashboard
+            </a>
+            <a
+              href="/chat"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-lg"
+            >
+              AI Assistant
+            </a>
+          </div>
         </div>
       </main>
     </HydrateClient>

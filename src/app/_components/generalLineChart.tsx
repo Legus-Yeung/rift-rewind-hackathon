@@ -52,7 +52,7 @@ interface LineChartProps {
           ></GeneralLineChart>
  * 
  * @param param0 - a {@link LineChartProps} with data for the chart
- * @returns a bar chart
+ * @returns a line chart
  */
 export default function GeneralLineChart({
   title,

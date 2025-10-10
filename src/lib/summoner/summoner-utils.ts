@@ -1,0 +1,52 @@
+import type { MatchDto } from "../riot/dtos/match/match.dto";
+import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
+import { fetchMatchInfo } from "../riot/riot-api-utils";
+
+/**
+ * Parses the gameName and tagLine of a summoner from a "gameName-tagLine" formatted string
+ *
+ * @param str - a string in the format "gameName-tagLine" ; gameName and/or tagLine can be empty
+ * @returns the gameName and tagLine of the given summoner, replaced with empty strings if empty
+ */
+export function parseSummoner(str: string): [string, string] {
+  const index = str.lastIndexOf("-");
+  const gameName: string = str.slice(0, index);
+  const tagLine: string = str.slice(index + 1);
+  const summoner: [string, string] = [gameName, tagLine];
+  return summoner;
+}
+
+/**
+ * Gets the number of games for each champion for a given summoner and matches.
+ *
+ * @param puuid - puuid of the summoner
+ * @param matchIds - match ids to iterate through
+ * @returns a dictionary of champion names and their respective number of games within the given matches. Non-existent matches are ignored.
+ */
+export async function getChampionGames(
+  puuid: string,
+  matchIds: string[],
+): Promise<Record<string, number>> {
+  const champions: Record<string, number> = {};
+
+  for (const matchId of matchIds) {
+    try {
+      const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+      const playerIndex: number =
+        matchInfo.metadata.participants.indexOf(puuid);
+      const playerInfo: ParticipantDto | undefined =
+        matchInfo.info.participants[playerIndex];
+      if (playerInfo == null) {
+        continue;
+      }
+      const champName: string = playerInfo.championName;
+      champions[champName] = (champions[champName] ?? 0) + 1;
+    } catch {
+      continue;
+    }
+    //TODO: replace this with rate limiter
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+
+  return champions;
+}

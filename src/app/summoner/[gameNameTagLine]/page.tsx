@@ -1,7 +1,12 @@
 import GeneralPieChart from "~/app/_components/generalPieChart";
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 import { fetchAccount, fetchMatchHistory } from "~/lib/riot/riot-api-utils";
-import { getChampionGames, parseSummoner } from "~/lib/summoner/summoner-utils";
+import {
+  getChampionGames,
+  parseSummoner,
+  type ChampionGames,
+} from "~/lib/summoner/summoner-utils";
+import { askBedrock } from "~/lib/ai/ai-utils";
 
 export default async function SummonerPage({
   params,
@@ -17,24 +22,50 @@ export default async function SummonerPage({
     puuid,
     new URLSearchParams({ count: "100" }),
   );
-  const champions: Record<string, number> = await getChampionGames(
+  const champions: ChampionGames[] = await getChampionGames(
     puuid,
     matchHistory,
+    3,
   );
+  const prompt: string = `My three most played champions are ${champions[0]?.name}, ${champions[1]?.name}, and ${champions[2]?.name}. Can you give me a short horoscope about my personality type based on my most played champions?`;
+  const aiSummary = await askBedrock(prompt);
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <h1>Summoner Name: {data.gameName}</h1>
-      <h1>Summoner Tag: {data.tagLine}</h1>
-      <h1>Summoner PUUID: {data.puuid}</h1>
-      <GeneralPieChart
-        data={Object.entries(champions).map(([key, value]) => ({
-          key,
-          value,
-        }))}
-        title="Champion Distribution"
-        nameKey="key"
-        dataKey="value"
-      ></GeneralPieChart>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-8 text-white">
+      {/* Summoner Info Card */}
+      <div className="flex w-full max-w-md flex-col gap-3 rounded-2xl bg-white/10 p-6 text-center shadow-lg backdrop-blur-md">
+        <h2 className="text-2xl font-bold text-purple-300">Summoner Info</h2>
+        <p className="text-lg">
+          <span className="font-semibold">Name:</span> {data.gameName}
+        </p>
+        <p className="text-lg">
+          <span className="font-semibold">Tag:</span> {data.tagLine}
+        </p>
+        <p className="text-lg break-words">
+          <span className="font-semibold">PUUID:</span> {data.puuid}
+        </p>
+      </div>
+
+      {/* Spacer */}
+      <div className="my-8 w-full max-w-2xl">
+        {/* Champion Distribution Chart */}
+        <div className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
+          <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Champion Distribution`}</h2>
+          <GeneralPieChart
+            data={champions}
+            title="Champion Distribution"
+            nameKey="name"
+            dataKey="games"
+          />
+        </div>
+      </div>
+
+      {/* AI Summary */}
+      <div className="mt-6 w-full max-w-2xl rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
+        <h2 className="mb-2 text-xl font-semibold text-purple-200">
+          AI Summary
+        </h2>
+        <p className="text-white/90">{aiSummary}</p>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,11 @@ import type { MatchDto } from "../riot/dtos/match/match.dto";
 import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
 import { fetchMatchInfo } from "../riot/riot-api-utils";
 
+export interface ChampionGames extends Record<string, number | string> {
+  name: string;
+  games: number;
+}
+
 /**
  * Parses the gameName and tagLine of a summoner from a "gameName-tagLine" formatted string
  *
@@ -21,14 +26,15 @@ export function parseSummoner(str: string): [string, string] {
  *
  * @param puuid - puuid of the summoner
  * @param matchIds - match ids to iterate through
- * @returns a dictionary of champion names and their respective number of games within the given matches. Non-existent matches are ignored.
+ * @param - optional number of champions to return, sorted by most played (defaults to all champions)
+ * @returns an array of objects with each champion's name and their respective number of games
  */
 export async function getChampionGames(
   puuid: string,
   matchIds: string[],
-): Promise<Record<string, number>> {
+  topX: number = -1,
+): Promise<ChampionGames[]> {
   const champions: Record<string, number> = {};
-
   for (const matchId of matchIds) {
     try {
       const matchInfo: MatchDto = await fetchMatchInfo(matchId);
@@ -44,9 +50,12 @@ export async function getChampionGames(
     } catch {
       continue;
     }
-    //TODO: replace this with rate limiter
-    await new Promise((resolve) => setTimeout(resolve, 20));
-  }
 
-  return champions;
+    // TODO: replace this with rate limiter
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return Object.entries(champions)
+    .map(([name, games]) => ({ name, games }))
+    .sort((a, b) => b.games - a.games)
+    .slice(0, topX);
 }

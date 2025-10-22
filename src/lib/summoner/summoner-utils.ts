@@ -7,6 +7,11 @@ export interface ChampionGames extends Record<string, number | string> {
   games: number;
 }
 
+export interface LaneGames extends Record<string, number | string> {
+  lane: string;
+  games: number;
+}
+
 /**
  * Parses the gameName and tagLine of a summoner from a "gameName-tagLine" formatted string
  *
@@ -58,4 +63,35 @@ export async function getChampionGames(
     .map(([name, games]) => ({ name, games }))
     .sort((a, b) => b.games - a.games)
     .slice(0, topX);
+}
+
+export async function getLaneGames(
+  puuid: string,
+  matchIds: string[],
+): Promise<LaneGames[]> {
+  const lanes: Record<string, number> = {};
+  for (const matchId of matchIds) {
+    try {
+      const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+      const playerIndex: number =
+        matchInfo.metadata.participants.indexOf(puuid);
+      const playerInfo: ParticipantDto | undefined =
+        matchInfo.info.participants[playerIndex];
+      if (playerInfo == null) {
+        continue;
+      }
+      const lane: string | undefined = playerInfo.lane;
+      if (lane == null) {
+        continue;
+      }
+      lanes[lane] = (lanes[lane] ?? 0) + 1;
+    } catch {
+      continue;
+    }
+  }
+  // TODO: replace this with rate limiter
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  return Object.entries(lanes)
+    .map(([lane, games]) => ({ lane, games }))
+    .sort((a, b) => b.games - a.games);
 }

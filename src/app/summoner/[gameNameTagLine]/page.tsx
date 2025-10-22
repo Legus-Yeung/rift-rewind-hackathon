@@ -4,7 +4,9 @@ import { fetchAccount, fetchMatchHistory } from "~/lib/riot/riot-api-utils";
 import {
   getChampionGames,
   parseSummoner,
+  getLaneGames,
   type ChampionGames,
+  type LaneGames,
 } from "~/lib/summoner/summoner-utils";
 import { askBedrock } from "~/lib/ai/ai-utils";
 
@@ -27,6 +29,7 @@ export default async function SummonerPage({
     matchHistory,
     3,
   );
+  const lanes: LaneGames[] = await getLaneGames(puuid, matchHistory);
   const prompt: string = `My three most played champions are ${champions[0]?.name}, ${champions[1]?.name}, and ${champions[2]?.name}. Can you give me a short horoscope about my personality type based on my most played champions?`;
   const aiSummary = await askBedrock(prompt);
   return (
@@ -54,6 +57,20 @@ export default async function SummonerPage({
             data={champions}
             title="Champion Distribution"
             nameKey="name"
+            dataKey="games"
+          />
+        </div>
+      </div>
+
+      {/* Spacer */}
+      <div className="my-8 w-full max-w-2xl">
+        {/* Role Distribution Chart */}
+        <div className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
+          <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Champion Distribution`}</h2>
+          <GeneralPieChart
+            data={lanes}
+            title="Lane Distribution"
+            nameKey="lane"
             dataKey="games"
           />
         </div>

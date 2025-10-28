@@ -7,8 +7,12 @@ import {
   getLaneGames,
   type ChampionGames,
   type LaneGames,
+  getBestMatch,
+  type MatchStats,
+  getMatchStats,
 } from "~/lib/summoner/summoner-utils";
 import { askBedrock } from "~/lib/ai/ai-utils";
+import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
 
 export default async function SummonerPage({
   params,
@@ -29,6 +33,8 @@ export default async function SummonerPage({
     matchHistory,
     3,
   );
+  const bestMatchDto: MatchDto = await getBestMatch(puuid, matchHistory);
+  const bestMatchStats: MatchStats = getMatchStats(puuid, bestMatchDto);
   const lanes: LaneGames[] = await getLaneGames(puuid, matchHistory);
   const prompt: string = `My three most played champions are ${champions[0]?.name}, ${champions[1]?.name}, and ${champions[2]?.name}. Can you give me a short horoscope about my personality type based on my most played champions?`;
   const aiSummary = await askBedrock(prompt);
@@ -66,7 +72,7 @@ export default async function SummonerPage({
       <div className="my-8 w-full max-w-2xl">
         {/* Role Distribution Chart */}
         <div className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
-          <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Champion Distribution`}</h2>
+          <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Lane Distribution`}</h2>
           <GeneralPieChart
             data={lanes}
             title="Lane Distribution"
@@ -82,6 +88,36 @@ export default async function SummonerPage({
           AI Summary
         </h2>
         <p className="text-white/90">{aiSummary}</p>
+      </div>
+
+      {/* Highlight Match */}
+      <div
+        className={`mt-6 w-full max-w-2xl rounded-2xl p-6 shadow-lg backdrop-blur-md transition-colors duration-300 ${bestMatchStats.win ? "border border-green-400 bg-green-600/20" : "border border-red-400 bg-red-600/20"}`}
+      >
+        <h2
+          className={`mb-2 text-xl font-bold ${
+            bestMatchStats.win ? "text-green-200" : "text-red-200"
+          }`}
+        >
+          Best Match
+        </h2>
+        <h3 className="mb-4 text-center text-xl font-semibold text-white">
+          {`${bestMatchStats.champion} ${bestMatchStats.lane}`}
+        </h3>
+        <div className="flex items-center justify-center gap-6">
+          <img
+            src={`https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${bestMatchStats.champion}.png`}
+            alt={bestMatchStats.champion}
+            className="h-24 w-24 rounded-lg border border-white/30 object-cover"
+          />
+          <div
+            className={`flex flex-col items-center justify-center rounded-lg p-4 shadow-inner ${bestMatchStats.win ? "bg-green-500/20" : "bg-red-500/20"}`}
+          >
+            <p className="text-white/90">{`Kills: ${bestMatchStats.kills}`}</p>
+            <p className="text-white/90">{`Deaths: ${bestMatchStats.deaths}`}</p>
+            <p className="text-white/90">{`Assists: ${bestMatchStats.assists}`}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

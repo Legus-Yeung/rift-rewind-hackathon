@@ -164,7 +164,7 @@ export interface ParticipantDto {
   kills: number;
 
   /** (string) Lane (role lane). */
-  lane?: string;
+  lane: string;
 
   /** (int) Largest critical strike. */
   largestCriticalStrike: number;

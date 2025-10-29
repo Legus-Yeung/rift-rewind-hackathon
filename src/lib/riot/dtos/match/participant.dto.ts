@@ -1,3 +1,4 @@
+import type { RiotPosition } from "../../enums/riot-position";
 import type { ChallengesDto } from "./challenges.dto";
 import type { MissionsDto } from "./missions.dto";
 import type { PerksDto } from "./perks.dto";
@@ -119,10 +120,10 @@ export interface ParticipantDto {
   goldSpent: number;
 
   /**
-   * (string) Individual position guess.
+   * ({@link RiotPosition}) Individual position guess.
    * Note: teamPosition is generally recommended over individualPosition.
    */
-  individualPosition?: string;
+  individualPosition: RiotPosition;
 
   /** (int) Inhibitor kills. */
   inhibitorKills: number;
@@ -296,7 +297,7 @@ export interface ParticipantDto {
   profileIcon?: number;
 
   /** (string) PUUID (unique player universal id). */
-  puuid?: string;
+  puuid: string;
 
   /** (int) Quadra kills. */
   quadraKills: number;
@@ -356,10 +357,10 @@ export interface ParticipantDto {
   teamId: number;
 
   /**
-   * (string) Team position guess.
+   * ({@link RiotPosition}) Team position guess.
    * Prefer teamPosition over individualPosition when possible.
    */
-  teamPosition?: string;
+  teamPosition: RiotPosition;
 
   /** (int) Time CCing others (milliseconds). */
   timeCCingOthers: number;

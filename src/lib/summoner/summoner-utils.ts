@@ -1,7 +1,7 @@
-import { match } from "assert";
 import type { MatchDto } from "../riot/dtos/match/match.dto";
 import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
 import { fetchMatchInfo } from "../riot/riot-api-utils";
+import { RiotPosition } from "../riot/enums/riot-position";
 
 export interface ChampionGames extends Record<string, number | string> {
   name: string;
@@ -13,13 +13,80 @@ export interface LaneGames extends Record<string, number | string> {
   games: number;
 }
 
-export interface MatchStats extends Record<string, number | string | boolean> {
+export interface MatchStats {
   kills: number;
   deaths: number;
   assists: number;
   champion: string;
   lane: string;
   win: boolean;
+}
+
+export interface MatchupEntry {
+  matchupKey: MatchupKey;
+  playerStats: MatchupStats;
+  opponentStats: MatchupStats;
+}
+
+export interface MatchupKey {
+  position: RiotPosition;
+  playerChampion: string;
+  opponentChampion: string;
+}
+
+export interface MatchupStats {
+  wins: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+}
+
+function createMatchupKey(key: MatchupKey): string {
+  return `${key.playerChampion}-${key.opponentChampion}-${key.position}`;
+}
+
+/**
+ * Finds the info for a player in a given match
+ *
+ * @param puuid
+ * @param matchDto
+ * @returns a {@link ParticipantDto} of the player
+ * @throws an {@link Error} if the player does not exist within the match
+ */
+function getPlayerInfo(puuid: string, matchDto: MatchDto): ParticipantDto {
+  const playerIndex: number = matchDto.metadata.participants.indexOf(puuid);
+  const playerInfo: ParticipantDto | undefined =
+    matchDto.info.participants[playerIndex];
+  if (playerInfo == null) {
+    throw new Error(
+      `Player of PUUID ${puuid} could not be found in match of ID ${matchDto.metadata.matchId}`,
+    );
+  }
+  return playerInfo;
+}
+
+/**
+ * Finds the lane opponent of a given player in a given match
+ *
+ * @param puuid
+ * @param matchDto
+ * @returns the puuid of the player's lane opponent in the match
+ * @throws an {@link Error} if a lane opponent can not be found for the player in a given match
+ */
+function getLaneOpponent(puuid: string, matchDto: MatchDto): string {
+  const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchDto);
+  for (const participant of matchDto.metadata.participants) {
+    if (participant == puuid) {
+      continue;
+    }
+    const opponentInfo: ParticipantDto = getPlayerInfo(participant, matchDto);
+    if (opponentInfo.teamPosition == playerInfo.teamPosition) {
+      return opponentInfo.puuid;
+    }
+  }
+  throw new Error(
+    `Could not find lane opponent for player of PUUID ${puuid} in match of ID ${matchDto.metadata.matchId}`,
+  );
 }
 
 /**
@@ -162,4 +229,167 @@ export function getMatchStats(puuid: string, matchDto: MatchDto): MatchStats {
     win: playerInfo.win,
   };
   return matchStats;
+}
+
+export async function getAllMatchups(
+  puuid: string,
+  matchIds: string[],
+): Promise<MatchupEntry[]> {
+  let matchups: Record<string, MatchupEntry> = {};
+  for (const matchId of matchIds) {
+    try {
+      const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+      const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
+      const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
+      const opponentInfo: ParticipantDto = getPlayerInfo(
+        opponentPuuid,
+        matchInfo,
+      );
+      const matchupKeyObj: MatchupKey = {
+        position: playerInfo.individualPosition,
+        playerChampion: playerInfo.championName,
+        opponentChampion: opponentInfo.championName,
+      };
+      const matchupKey: string = createMatchupKey(matchupKeyObj);
+
+      if (!matchups[matchupKey]) {
+        const playerStats: MatchupStats = {
+          wins: playerInfo.win ? 1 : 0,
+          kills: playerInfo.kills,
+          deaths: playerInfo.deaths,
+          assists: playerInfo.assists,
+        };
+        const opponentStats: MatchupStats = {
+          wins: opponentInfo.win ? 1 : 0,
+          kills: opponentInfo.kills,
+          deaths: opponentInfo.deaths,
+          assists: opponentInfo.assists,
+        };
+        matchups[matchupKey] = {
+          matchupKey: matchupKeyObj,
+          playerStats: playerStats,
+          opponentStats: opponentStats,
+        };
+      } else {
+        const matchupInfo: MatchupEntry = matchups[matchupKey];
+        const playerStats: MatchupStats = matchupInfo.playerStats;
+        const opponentStats: MatchupStats = matchupInfo.opponentStats;
+
+        playerStats.wins += playerInfo.win ? 1 : 0;
+        playerStats.kills += playerInfo.kills;
+        playerStats.deaths += playerInfo.deaths;
+        playerStats.assists += playerInfo.assists;
+
+        opponentStats.wins += opponentInfo.win ? 1 : 0;
+        opponentStats.kills += opponentInfo.kills;
+        opponentStats.deaths += opponentInfo.deaths;
+        opponentStats.assists += opponentInfo.assists;
+      }
+    } catch (error) {
+      console.warn(error);
+      continue;
+    }
+
+    // TODO: replace this with rate limiter
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return Object.values(matchups);
+}
+
+function calculateWinRate(matchup: MatchupEntry): number {
+  return (
+    matchup.playerStats.wins /
+    (matchup.playerStats.wins + matchup.opponentStats.wins)
+  );
+}
+
+export async function getBestMatchupByChampion(
+  puuid: string,
+  matchIds: string[],
+  champion: string,
+): Promise<MatchupEntry> {
+  const allMatchups = await getAllMatchups(puuid, matchIds);
+  const filteredMatchups = allMatchups.filter(
+    (m) => m.matchupKey.playerChampion === champion,
+  );
+  if (filteredMatchups.length == 0) {
+    throw new Error(
+      `Could not find best matchup by champion ${champion} for PUUID ${puuid} given match IDs ${matchIds}`,
+    );
+  }
+  return filteredMatchups.reduce((best, cur) => {
+    const bestWinrate = calculateWinRate(best);
+    const curWinrate = calculateWinRate(cur);
+    return curWinrate > bestWinrate ? cur : best;
+  });
+}
+
+export async function getBestMatchupByPosition(
+  puuid: string,
+  matchIds: string[],
+  position: RiotPosition,
+): Promise<MatchupEntry> {
+  const allMatchups = await getAllMatchups(puuid, matchIds);
+  const filteredMatchups = allMatchups.filter(
+    (m) => m.matchupKey.position === position,
+  );
+  if (filteredMatchups.length == 0) {
+    throw new Error(
+      `Could not find best matchup by position ${position} for PUUID ${puuid} given match IDs ${matchIds}`,
+    );
+  }
+  return filteredMatchups.reduce((best, cur) => {
+    const bestWinrate = calculateWinRate(best);
+    const curWinrate = calculateWinRate(cur);
+    return curWinrate > bestWinrate ? cur : best;
+  });
+}
+
+export async function getBestMatchupPerPosition(
+  puuid: string,
+  matchIds: string[],
+): Promise<MatchupEntry[]> {
+  const positions: RiotPosition[] = Object.values(RiotPosition);
+  const allMatchups = await getAllMatchups(puuid, matchIds);
+  let positionMatchups: MatchupEntry[] = [];
+  for (const position of positions) {
+    const filteredMatchups = allMatchups.filter(
+      (m) => m.matchupKey.position === position,
+    );
+    if (filteredMatchups.length == 0) {
+      continue;
+    }
+    positionMatchups.push(
+      filteredMatchups.reduce((best, cur) => {
+        const bestWinrate = calculateWinRate(best);
+        const curWinrate = calculateWinRate(cur);
+        return curWinrate > bestWinrate ? cur : best;
+      }),
+    );
+  }
+  return positionMatchups;
+}
+
+export async function getBestMatchupByChampionAndPosition(
+  puuid: string,
+  matchIds: string[],
+  champion: string,
+  position: string,
+): Promise<MatchupEntry> {
+  const allMatchups = await getAllMatchups(puuid, matchIds);
+  const filteredMatchups = allMatchups.filter(
+    (m) =>
+      m.matchupKey.position === position &&
+      m.matchupKey.playerChampion === champion,
+  );
+  if (filteredMatchups.length == 0) {
+    throw new Error(
+      `Could not find best matchup by position ${position} and champion ${champion} for PUUID ${puuid} given match IDs ${matchIds}`,
+    );
+  }
+  return filteredMatchups.reduce((best, cur) => {
+    const bestWinrate = calculateWinRate(best);
+    const curWinrate = calculateWinRate(cur);
+    return curWinrate > bestWinrate ? cur : best;
+  });
 }

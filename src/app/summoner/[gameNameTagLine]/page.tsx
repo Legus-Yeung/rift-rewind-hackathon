@@ -3,6 +3,7 @@ import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 import { fetchAccount, fetchMatchHistory } from "~/lib/riot/riot-api-utils";
 import {
   getChampionGames,
+  getBestMatchupPerPosition,
   parseSummoner,
   getLaneGames,
   type ChampionGames,
@@ -10,6 +11,7 @@ import {
   getBestMatch,
   type MatchStats,
   getMatchStats,
+  type MatchupEntry,
 } from "~/lib/summoner/summoner-utils";
 import { askBedrock } from "~/lib/ai/ai-utils";
 import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
@@ -36,6 +38,10 @@ export default async function SummonerPage({
   const bestMatchDto: MatchDto = await getBestMatch(puuid, matchHistory);
   const bestMatchStats: MatchStats = getMatchStats(puuid, bestMatchDto);
   const lanes: LaneGames[] = await getLaneGames(puuid, matchHistory);
+  const bestMatchups: MatchupEntry[] = await getBestMatchupPerPosition(
+    puuid,
+    matchHistory,
+  );
   const prompt: string = `My three most played champions are ${champions[0]?.name}, ${champions[1]?.name}, and ${champions[2]?.name}. Can you give me a short horoscope about my personality type based on my most played champions?`;
   const aiSummary = await askBedrock(prompt);
   return (
@@ -118,6 +124,73 @@ export default async function SummonerPage({
             <p className="text-white/90">{`Assists: ${bestMatchStats.assists}`}</p>
           </div>
         </div>
+      </div>
+
+      {/* Best Matchup */}
+      <div className="flex flex-col gap-4 p-4">
+        {bestMatchups.map((entry, idx) => {
+          const player = entry.playerStats;
+          const opponent = entry.opponentStats;
+
+          const playerKDA = (
+            (player.kills + player.assists) /
+            player.deaths
+          ).toFixed(2);
+          const opponentKDA = (
+            (opponent.kills + opponent.assists) /
+            opponent.deaths
+          ).toFixed(2);
+
+          const playerIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.playerChampion}.png`;
+          const opponentIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.opponentChampion}.png`;
+
+          return (
+            <div
+              key={idx}
+              className="mx-auto flex w-full max-w-4xl items-center justify-between rounded-2xl bg-gray-800 p-4 text-white shadow-md transition hover:bg-gray-700"
+            >
+              {/* Player Champion */}
+              <div className="flex w-24 flex-col items-center">
+                <img
+                  src={playerIcon}
+                  alt={entry.matchupKey.playerChampion}
+                  className="h-16 w-16 rounded-full border-2 border-blue-400 object-cover"
+                />
+                <p className="mt-2 text-sm font-semibold text-blue-300">
+                  {entry.matchupKey.playerChampion}
+                </p>
+              </div>
+
+              {/* Player Stats */}
+              <div className="flex w-24 flex-col items-center text-center">
+                <p className="font-semibold text-green-400">
+                  Wins: {player.wins}
+                </p>
+                <p>KDA: {playerKDA}</p>
+              </div>
+
+              {/* Opponent Stats */}
+              <div className="flex w-24 flex-col items-center text-center">
+                <p className="font-semibold text-red-400">
+                  Wins: {opponent.wins}
+                </p>
+                <p>KDA: {opponentKDA}</p>
+              </div>
+
+              {/* Opponent Champion */}
+              <div className="flex w-24 flex-col items-center">
+                <img
+                  src={opponentIcon}
+                  alt={entry.matchupKey.opponentChampion}
+                  className="h-16 w-16 rounded-full border-2 border-red-400 object-cover"
+                />
+                <p className="mt-2 text-sm font-semibold text-red-300">
+                  {entry.matchupKey.opponentChampion}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

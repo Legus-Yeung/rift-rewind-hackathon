@@ -63,7 +63,7 @@ export async function fetchMatchHistory(
   const startTime = searchParams.get("startTime");
   const endTime = searchParams.get("endTime");
   const queue = searchParams.get("queue");
-  const type = searchParams.get("type");
+  const type = searchParams.get("type") ?? "ranked";
 
   if (startTime) params.append("startTime", startTime);
   if (endTime) params.append("endTime", endTime);

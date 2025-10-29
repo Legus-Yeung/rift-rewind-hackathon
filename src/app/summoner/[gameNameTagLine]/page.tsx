@@ -5,13 +5,13 @@ import {
   getChampionGames,
   getBestMatchupPerPosition,
   parseSummoner,
-  getLaneGames,
   type ChampionGames,
-  type LaneGames,
   getBestMatch,
   type MatchStats,
   getMatchStats,
   type MatchupEntry,
+  getPositionGames,
+  type PositionEntry,
 } from "~/lib/summoner/summoner-utils";
 import { askBedrock } from "~/lib/ai/ai-utils";
 import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
@@ -37,7 +37,10 @@ export default async function SummonerPage({
   );
   const bestMatchDto: MatchDto = await getBestMatch(puuid, matchHistory);
   const bestMatchStats: MatchStats = getMatchStats(puuid, bestMatchDto);
-  const lanes: LaneGames[] = await getLaneGames(puuid, matchHistory);
+  const positionStats: PositionEntry[] = await getPositionGames(
+    puuid,
+    matchHistory,
+  );
   const bestMatchups: MatchupEntry[] = await getBestMatchupPerPosition(
     puuid,
     matchHistory,
@@ -80,9 +83,12 @@ export default async function SummonerPage({
         <div className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
           <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Lane Distribution`}</h2>
           <GeneralPieChart
-            data={lanes}
+            data={positionStats.map((e) => ({
+              positionKey: e.positionKey,
+              ...e.positionStats,
+            }))}
             title="Lane Distribution"
-            nameKey="lane"
+            nameKey="positionKey"
             dataKey="games"
           />
         </div>

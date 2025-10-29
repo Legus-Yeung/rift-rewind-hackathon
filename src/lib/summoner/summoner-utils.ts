@@ -8,8 +8,12 @@ export interface ChampionGames extends Record<string, number | string> {
   games: number;
 }
 
-export interface LaneGames extends Record<string, number | string> {
-  lane: string;
+export interface PositionEntry {
+  positionKey: RiotPosition;
+  positionStats: PositionStats;
+}
+
+export interface PositionStats {
   games: number;
 }
 
@@ -142,32 +146,48 @@ export async function getChampionGames(
     .slice(0, topX);
 }
 
-export async function getLaneGames(
+export async function getPositionGames(
   puuid: string,
   matchIds: string[],
-): Promise<LaneGames[]> {
-  const lanes: Record<string, number> = {};
+): Promise<PositionEntry[]> {
+  const positionEntries: Record<string, PositionEntry> = {};
+
   for (const matchId of matchIds) {
     try {
       const matchInfo: MatchDto = await fetchMatchInfo(matchId);
-      const playerIndex: number =
-        matchInfo.metadata.participants.indexOf(puuid);
-      const playerInfo: ParticipantDto | undefined =
-        matchInfo.info.participants[playerIndex];
-      if (playerInfo == null) {
-        continue;
+      const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
+      const position: RiotPosition = playerInfo.teamPosition;
+
+      if (!positionEntries[position]) {
+        const positionEntry: PositionEntry = {
+          positionKey: position,
+          positionStats: {
+            games: 1,
+          },
+        };
+        positionEntries[position] = positionEntry;
+      } else {
+        const positionEntry: PositionEntry = positionEntries[position];
+        const positionStats: PositionStats = positionEntry.positionStats;
+        positionStats.games += 1;
       }
-      const lane: string | undefined = playerInfo.lane;
-      lanes[lane] = (lanes[lane] ?? 0) + 1;
-    } catch {
+    } catch (error) {
+      console.warn(error);
       continue;
     }
-    // TODO: replace this with rate limiter
+
+    // TODO: replace with rate limiter
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  return Object.entries(lanes)
-    .map(([lane, games]) => ({ lane, games }))
-    .sort((a, b) => b.games - a.games);
+
+  const positionOrder = Object.values(RiotPosition);
+  return Object.entries(positionEntries)
+    .map(([_, stats]) => stats)
+    .sort(
+      (a, b) =>
+        positionOrder.indexOf(a.positionKey) -
+        positionOrder.indexOf(b.positionKey),
+    );
 }
 
 export async function getBestMatch(

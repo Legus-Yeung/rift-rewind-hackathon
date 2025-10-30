@@ -5,6 +5,8 @@ import GeneralBarChart from "../_components/generalBarChart";
 import GeneralLineChart from "../_components/generalLineChart";
 import GeneralPieChart from "../_components/generalPieChart";
 import GeneralTable from "../_components/generalTable";
+import ShareButton from "../_components/socialLink";
+
 
 interface MockData {
   playerOverview: {
@@ -52,6 +54,8 @@ interface MockData {
 export default function DashboardPage() {
   const [mockData, setMockData] = useState<MockData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
 
   useEffect(() => {
     fetch("/mockData.json")
@@ -143,6 +147,18 @@ export default function DashboardPage() {
             <span className="text-green-400">
               {mockData.playerOverview.winRate}% win rate
             </span>
+          </div>
+          <div className="p-6 text-white">
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">
+              Share Profile
+            </button>
+
+            {isShareOpen && (
+              <ShareButton
+                profileUrl={`https://riftrewind.app/profile/${encodeURIComponent(mockData.playerOverview.summonerName)}`}
+                onClose={() => setIsShareOpen(false)}/>)}
           </div>
         </div>
 

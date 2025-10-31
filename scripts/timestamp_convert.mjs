@@ -5,7 +5,7 @@ function toEDT(timestampMs) {
     });
   }
   
-  const timestamp = 1758339276327;
+  const timestamp = 1736380800000;
   console.log("UTC:", new Date(timestamp).toISOString());
   console.log("Eastern (EDT/EST):", toEDT(timestamp));
   

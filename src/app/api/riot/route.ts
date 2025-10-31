@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
   fetchAccount,
-  fetchMatchHistory,
+  fetchAllMatchIds,
   fetchMatchInfo,
   fetchMatchTimeline,
 } from "~/lib/riot/riot-api-utils";
@@ -147,85 +147,7 @@ async function getMatchHistory(
   searchParams: URLSearchParams,
 ): Promise<NextResponse<string[] | ErrorResponse>> {
   try {
-    const allMatchIds: string[] = [];
-    const now = Date.now();
-    const twelveMonthsAgoMs = now - 12 * 30 * 24 * 60 * 60 * 1000;
-    const twelveMonthsAgoSeconds = Math.floor(twelveMonthsAgoMs / 1000);
-
-    const providedStartTime = searchParams.get("startTime");
-    const startTime = providedStartTime ?? twelveMonthsAgoSeconds.toString();
-
-    let start = 0;
-    const count = 100;
-    let hasMore = true;
-
-    while (hasMore) {
-      const paginatedParams = new URLSearchParams(searchParams);
-      paginatedParams.set("start", start.toString());
-      paginatedParams.set("count", count.toString());
-      paginatedParams.set("startTime", startTime);
-
-      const batch: string[] = await fetchMatchHistory(puuid, paginatedParams);
-
-      if (batch.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      if (batch.length < count) {
-        allMatchIds.push(...batch);
-        hasMore = false;
-        break;
-      }
-
-      const lastMatchId = batch[batch.length - 1];
-      let batchToAdd = batch;
-
-      if (lastMatchId) {
-        try {
-          const lastMatchInfo = await fetchMatchInfo(lastMatchId);
-          const lastMatchTimestamp = lastMatchInfo.info.gameEndTimestamp ?? lastMatchInfo.info.gameStartTimestamp;
-
-          if (lastMatchTimestamp < twelveMonthsAgoMs) {
-            const validMatches: string[] = [];
-            for (const matchId of batch) {
-              try {
-                const matchInfo = await fetchMatchInfo(matchId);
-                const matchTimestamp = matchInfo.info.gameEndTimestamp ?? matchInfo.info.gameStartTimestamp;
-                if (matchTimestamp >= twelveMonthsAgoMs) {
-                  validMatches.push(matchId);
-                } else {
-                  break;
-                }
-              } catch {
-                validMatches.push(matchId);
-              }
-            }
-            batchToAdd = validMatches;
-            hasMore = false;
-          }
-        } catch {
-          if (allMatchIds.length + batch.length >= 1500) {
-            console.warn("Reached 1000 matches limit, stopping pagination");
-            hasMore = false;
-          }
-        }
-      }
-
-      allMatchIds.push(...batchToAdd);
-
-      if (batchToAdd.length < batch.length) {
-        hasMore = false;
-      } else {
-        start += count;
-      }
-
-      if (allMatchIds.length >= 1500) {
-        console.warn("Reached 1500 matches limit, stopping pagination");
-        hasMore = false;
-      }
-    }
-
+    const allMatchIds = await fetchAllMatchIds(puuid, searchParams);
     return NextResponse.json(allMatchIds);
   } catch (err) {
     console.error("Failed to fetch match IDs:", err);

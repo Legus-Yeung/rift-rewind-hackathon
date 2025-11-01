@@ -32,7 +32,7 @@ export function parseSummoner(str: string): [string, string] {
 export async function getChampionGames(
   puuid: string,
   matchIds: string[],
-  topX: number = -1,
+  topX = -1,
 ): Promise<ChampionGames[]> {
   const champions: Record<string, number> = {};
   for (const matchId of matchIds) {

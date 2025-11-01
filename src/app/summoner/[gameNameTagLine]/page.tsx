@@ -55,7 +55,6 @@ export default async function SummonerPage({
   const aiSummary: string = await askBedrock(prompt);
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] px-4 py-8 text-white">
-      {/* Summoner Info Card */}
       <div className="flex w-full max-w-md flex-col gap-3 rounded-2xl bg-white/10 p-6 text-center shadow-lg backdrop-blur-md">
         <h2 className="text-2xl font-bold text-purple-300">Summoner Info</h2>
         <p className="text-lg">
@@ -69,9 +68,7 @@ export default async function SummonerPage({
         </p>
       </div>
 
-      {/* Spacer */}
       <div className="my-8 w-full max-w-2xl">
-        {/* Champion Distribution Chart */}
         <div className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
           <h2 className="mb-4 text-xl font-semibold text-purple-200">{`Champion Distribution`}</h2>
           <GeneralPieChart
@@ -83,7 +80,6 @@ export default async function SummonerPage({
         </div>
       </div>
 
-      {/* AI Summary */}
       <div className="mt-6 w-full max-w-2xl rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
         <h2 className="mb-2 text-xl font-semibold text-purple-200">
           AI Summary

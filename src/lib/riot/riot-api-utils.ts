@@ -63,7 +63,7 @@ export async function fetchMatchHistory(
   const startTime = searchParams.get("startTime");
   const endTime = searchParams.get("endTime");
   const queue = searchParams.get("queue");
-  const type = searchParams.get("type");
+  const type = searchParams.get("type") ?? "ranked";
 
   if (startTime) params.append("startTime", startTime);
   if (endTime) params.append("endTime", endTime);
@@ -79,6 +79,91 @@ export async function fetchMatchHistory(
 
   const matchIds = (await res.json()) as string[];
   return matchIds;
+}
+
+export async function fetchAllMatchIds(
+  puuid: string,
+  searchParams: URLSearchParams,
+): Promise<string[]> {
+  const allMatchIds: string[] = [];
+  const seasonStartMs = 1736380800000;
+  const seasonStartSeconds = Math.floor(seasonStartMs / 1000);
+
+  const providedStartTime = searchParams.get("startTime");
+  const startTime = providedStartTime ?? seasonStartSeconds.toString();
+
+  let start = 0;
+  const count = 100;
+  let hasMore = true;
+
+  while (hasMore) {
+    const paginatedParams = new URLSearchParams(searchParams);
+    paginatedParams.set("start", start.toString());
+    paginatedParams.set("count", count.toString());
+    paginatedParams.set("startTime", startTime);
+
+    const batch = await fetchMatchHistory(puuid, paginatedParams);
+
+    if (batch.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    if (batch.length < count) {
+      allMatchIds.push(...batch);
+      hasMore = false;
+      break;
+    }
+
+    const lastMatchId = batch[batch.length - 1];
+    let batchToAdd = batch;
+
+    if (lastMatchId) {
+      try {
+        const lastMatchInfo = await fetchMatchInfo(lastMatchId);
+        const lastMatchTimestamp = lastMatchInfo.info.gameEndTimestamp ?? lastMatchInfo.info.gameStartTimestamp;
+
+        if (lastMatchTimestamp < seasonStartMs) {
+          const validMatches: string[] = [];
+          for (const matchId of batch) {
+            try {
+              const matchInfo = await fetchMatchInfo(matchId);
+              const matchTimestamp = matchInfo.info.gameEndTimestamp ?? matchInfo.info.gameStartTimestamp;
+              if (matchTimestamp >= seasonStartMs) {
+                validMatches.push(matchId);
+              } else {
+                break;
+              }
+            } catch {
+              validMatches.push(matchId);
+            }
+          }
+          batchToAdd = validMatches;
+          hasMore = false;
+        }
+      } catch {
+        if (allMatchIds.length + batch.length >= 1500) {
+          console.warn("Reached 1500 matches limit, stopping pagination");
+          hasMore = false;
+        }
+      }
+    }
+
+    allMatchIds.push(...batchToAdd);
+
+    if (batchToAdd.length < batch.length) {
+      hasMore = false;
+    } else {
+      start += count;
+    }
+
+    if (allMatchIds.length >= 1500) {
+      console.warn("Reached 1500 matches limit, stopping pagination");
+      hasMore = false;
+    }
+  }
+
+  return allMatchIds;
 }
 
 /**

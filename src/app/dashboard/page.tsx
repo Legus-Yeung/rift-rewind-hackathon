@@ -5,6 +5,7 @@ import GeneralBarChart from "../_components/generalBarChart";
 import GeneralLineChart from "../_components/generalLineChart";
 import GeneralPieChart from "../_components/generalPieChart";
 import GeneralTable from "../_components/generalTable";
+import ShareButton from "../_components/socialLink";
 
 interface MockData {
   playerOverview: {
@@ -52,6 +53,7 @@ interface MockData {
 export default function DashboardPage() {
   const [mockData, setMockData] = useState<MockData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   useEffect(() => {
     fetch("/mockData.json")
@@ -75,7 +77,7 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-white"></div>
           <p>Loading dashboard...</p>
         </div>
       </div>
@@ -86,11 +88,13 @@ export default function DashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
         <div className="text-center">
-          <p className="text-xl mb-4">Failed to load data</p>
-          <p className="text-gray-400 mb-4">Make sure mockData.json is in the public directory</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+          <p className="mb-4 text-xl">Failed to load data</p>
+          <p className="mb-4 text-gray-400">
+            Make sure mockData.json is in the public directory
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700"
           >
             Retry
           </button>
@@ -131,12 +135,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-4xl font-bold">
             {mockData.playerOverview.summonerName}
           </h1>
           <div className="flex items-center justify-center gap-4 text-lg">
-            <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-3 py-1 rounded-full font-semibold">
+            <span className="rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 px-3 py-1 font-semibold text-black">
               {mockData.playerOverview.rank}
             </span>
             <span>{mockData.playerOverview.totalGames} games</span>
@@ -144,28 +148,48 @@ export default function DashboardPage() {
               {mockData.playerOverview.winRate}% win rate
             </span>
           </div>
-        </div>
+          <div className="p-6 text-white">
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
+            >
+              Share Profile
+            </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gray-900 rounded-lg p-4 text-center">
-            <h3 className="text-sm text-gray-400 mb-1">Most Played</h3>
-            <p className="text-xl font-bold">{mockData.highlights.mostPlayed}</p>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-4 text-center">
-            <h3 className="text-sm text-gray-400 mb-1">Best Win Rate</h3>
-            <p className="text-xl font-bold">{mockData.highlights.bestWinRateChampion}</p>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-4 text-center">
-            <h3 className="text-sm text-gray-400 mb-1">Longest Win Streak</h3>
-            <p className="text-xl font-bold">{mockData.highlights.longestWinStreak}</p>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-4 text-center">
-            <h3 className="text-sm text-gray-400 mb-1">Most Kills</h3>
-            <p className="text-xl font-bold">{mockData.highlights.mostKillsInGame}</p>
+            {isShareOpen && (
+              <ShareButton onClose={() => setIsShareOpen(false)} />
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg bg-gray-900 p-4 text-center">
+            <h3 className="mb-1 text-sm text-gray-400">Most Played</h3>
+            <p className="text-xl font-bold">
+              {mockData.highlights.mostPlayed}
+            </p>
+          </div>
+          <div className="rounded-lg bg-gray-900 p-4 text-center">
+            <h3 className="mb-1 text-sm text-gray-400">Best Win Rate</h3>
+            <p className="text-xl font-bold">
+              {mockData.highlights.bestWinRateChampion}
+            </p>
+          </div>
+          <div className="rounded-lg bg-gray-900 p-4 text-center">
+            <h3 className="mb-1 text-sm text-gray-400">Longest Win Streak</h3>
+            <p className="text-xl font-bold">
+              {mockData.highlights.longestWinStreak}
+            </p>
+          </div>
+          <div className="rounded-lg bg-gray-900 p-4 text-center">
+            <h3 className="mb-1 text-sm text-gray-400">Most Kills</h3>
+            <p className="text-xl font-bold">
+              {mockData.highlights.mostKillsInGame}
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <GeneralBarChart
             title="Champion Win/Loss Distribution"
             xKey="name"
@@ -187,7 +211,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Timeline Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <GeneralLineChart
             title="Win Rate Over Recent Matches"
             xKey={{ key: "gameNumber", label: "Match Number" }}
@@ -209,8 +233,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-center">Friends Comparison</h2>
-          <div className="bg-gray-900 rounded-2xl p-4">
+          <h2 className="mb-4 text-center text-2xl font-bold">
+            Friends Comparison
+          </h2>
+          <div className="rounded-2xl bg-gray-900 p-4">
             <GeneralTable
               data={friendsTableData}
               columns={[
@@ -223,24 +249,34 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-900 rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-4">Game Records</h3>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="rounded-2xl bg-gray-900 p-6">
+            <h3 className="mb-4 text-xl font-bold">Game Records</h3>
             <div className="space-y-2">
-              <p><span className="text-gray-400">Shortest Game:</span> {mockData.highlights.shortestGame}</p>
-              <p><span className="text-gray-400">Longest Game:</span> {mockData.highlights.longestGame}</p>
-              <p><span className="text-gray-400">First Pentakill:</span> {mockData.highlights.firstPentakill}</p>
+              <p>
+                <span className="text-gray-400">Shortest Game:</span>{" "}
+                {mockData.highlights.shortestGame}
+              </p>
+              <p>
+                <span className="text-gray-400">Longest Game:</span>{" "}
+                {mockData.highlights.longestGame}
+              </p>
+              <p>
+                <span className="text-gray-400">First Pentakill:</span>{" "}
+                {mockData.highlights.firstPentakill}
+              </p>
             </div>
           </div>
-          <div className="bg-gray-900 rounded-2xl p-6">
-            <h3 className="text-xl font-bold mb-4">Rank Progression</h3>
+          <div className="rounded-2xl bg-gray-900 p-6">
+            <h3 className="mb-4 text-xl font-bold">Rank Progression</h3>
             <div className="flex items-center gap-2">
               {mockData.playerOverview.tierProgression.map((tier, index) => (
                 <div key={tier} className="flex items-center">
-                  <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded text-sm font-semibold">
+                  <span className="rounded bg-gradient-to-r from-yellow-400 to-yellow-600 px-2 py-1 text-sm font-semibold text-black">
                     {tier}
                   </span>
-                  {index < mockData.playerOverview.tierProgression.length - 1 && (
+                  {index <
+                    mockData.playerOverview.tierProgression.length - 1 && (
                     <span className="mx-2 text-gray-400">→</span>
                   )}
                 </div>

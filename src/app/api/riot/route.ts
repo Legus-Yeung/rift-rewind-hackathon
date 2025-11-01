@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import {
   fetchAccount,
-  fetchMatchHistory,
+  fetchAllMatchIds,
   fetchMatchInfo,
   fetchMatchTimeline,
 } from "~/lib/riot/riot-api-utils";
@@ -27,12 +27,17 @@ import type { TimelineDto } from "~/lib/riot/dtos/timeline/timeline.dto";
  *    - puuid: Player's unique identifier
  *
  *    Optional parameters:
- *    - start: Start index (default: 0)
- *    - count: Number of matches to return, 0-100 (default: 100)
- *    - startTime: Epoch timestamp in seconds (matches after June 16th, 2021)
+ *    - start: Start index (default: 0, used internally for pagination)
+ *    - count: Number of matches per batch, 0-100 (default: 100, used internally)
+ *    - startTime: Epoch timestamp in seconds (default: 12 months ago)
  *    - endTime: Epoch timestamp in seconds
  *    - queue: Queue ID filter (mutually inclusive with type)
  *    - type: Match type filter - "ranked" (mutually inclusive with queue)
+ *
+ *    Note: By default, this endpoint fetches ALL matches from the last 12 months,
+ *    automatically paginating through results. The API is limited to 100 matches per
+ *    request, so multiple requests are made internally until all matches within the
+ *    time window are retrieved.
  *
  * 3. Match Info:
  *    GET /api/riot?action=match-info&matchId=<matchId>
@@ -142,8 +147,8 @@ async function getMatchHistory(
   searchParams: URLSearchParams,
 ): Promise<NextResponse<string[] | ErrorResponse>> {
   try {
-    const data: string[] = await fetchMatchHistory(puuid, searchParams);
-    return NextResponse.json(data);
+    const allMatchIds = await fetchAllMatchIds(puuid, searchParams);
+    return NextResponse.json(allMatchIds);
   } catch (err) {
     console.error("Failed to fetch match IDs:", err);
     return NextResponse.json<ErrorResponse>(

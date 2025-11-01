@@ -9,16 +9,18 @@ import {
   FaReddit,
   FaXmark,
 } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
 
 interface SocialLinkProps {
-  profileUrl: string;
   onClose: () => void;
-};
+}
 
-export default function SocialLink({ profileUrl, onClose }: SocialLinkProps) {
+export default function SocialLink({ onClose }: SocialLinkProps) {
+  const pathname = usePathname();
+  const fullUrl = `${window.location.origin}${pathname}`;
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(fullUrl);
       alert("Link copied to clipboard!");
     } catch (err) {
       console.error("Failed to copy:", err);
@@ -34,12 +36,12 @@ export default function SocialLink({ profileUrl, onClose }: SocialLinkProps) {
     {
       name: "Twitter",
       icon: <FaXTwitter className="text-white-400" />,
-      link: `https://twitter.com/intent/tweet?url=${encodeURIComponent(profileUrl)}`,
+      link: `https://twitter.com/intent/tweet?url=${encodeURIComponent(fullUrl)}`,
     },
     {
       name: "Facebook",
       icon: <FaFacebook className="text-blue-500" />,
-      link: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`,
+      link: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`,
     },
     {
       name: "Discord",
@@ -49,24 +51,25 @@ export default function SocialLink({ profileUrl, onClose }: SocialLinkProps) {
     {
       name: "Email",
       icon: <FaEnvelope className="text-amber-400" />,
-      link: `mailto:?subject=Check%20this%20out&body=${encodeURIComponent(profileUrl)}`,
+      link: `mailto:?subject=Check%20this%20out&body=${encodeURIComponent(fullUrl)}`,
     },
     {
       name: "Reddit",
       icon: <FaReddit className="text-orange-500" />,
-      link: `https://www.reddit.com/submit?url=${encodeURIComponent(profileUrl)}`,
+      link: `https://www.reddit.com/submit?url=${encodeURIComponent(fullUrl)}`,
     },
   ];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
-      <div className="bg-[#0d1117] text-white rounded-2xl p-6 w-96 shadow-2xl border border-[#1f2937]">
-        <div className="flex justify-between items-center mb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-96 rounded-2xl border border-[#1f2937] bg-[#0d1117] p-6 text-white shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Share Profile</h2>
           <button
             onClick={onClose}
-            className="hover:text-gray-400 transition-colors">
-            <FaXmark className="w-5 h-5" />
+            className="transition-colors hover:text-gray-400"
+          >
+            <FaXmark className="h-5 w-5" />
           </button>
         </div>
 
@@ -74,9 +77,12 @@ export default function SocialLink({ profileUrl, onClose }: SocialLinkProps) {
           {shareLinks.map((item) => (
             <button
               key={item.name}
-              onClick={() => item.link ? window.open(item.link, "_blank") : item.action?.()}
-              className="flex flex-col items-center justify-center bg-[#161b22] rounded-xl p-3 hover:bg-[#1c2128] transition-colors">
-              <div className="text-2xl mb-1">{item.icon}</div>
+              onClick={() =>
+                item.link ? window.open(item.link, "_blank") : item.action?.()
+              }
+              className="flex flex-col items-center justify-center rounded-xl bg-[#161b22] p-3 transition-colors hover:bg-[#1c2128]"
+            >
+              <div className="mb-1 text-2xl">{item.icon}</div>
               <span className="text-sm text-gray-200">{item.name}</span>
             </button>
           ))}

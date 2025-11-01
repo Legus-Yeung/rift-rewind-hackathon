@@ -10,15 +10,19 @@ import {
   FaXmark,
 } from "react-icons/fa6";
 
-type SocialLinkProps = {
+interface SocialLinkProps {
   profileUrl: string;
   onClose: () => void;
 };
 
 export default function SocialLink({ profileUrl, onClose }: SocialLinkProps) {
-  const handleCopy = () => {
-    navigator.clipboard.writeText(profileUrl);
-    alert("Link copied to clipboard!");
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      alert("Link copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   };
 
   const shareLinks = [

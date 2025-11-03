@@ -1,7 +1,8 @@
 import type { MatchDto } from "../riot/dtos/match/match.dto";
 import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
-import { fetchMatchInfo } from "../riot/riot-api-utils";
 import { RiotPosition } from "../riot/enums/riot-position";
+import { apiRequest } from "../api/request-utils";
+import { baseUrl } from "../api/url-utils";
 
 export interface CoreStats {
   kills: number;
@@ -152,7 +153,9 @@ export async function getChampionGames(
   const matchupEntries: Record<string, MatchupEntry> = {};
   for (const matchId of matchIds) {
     try {
-      const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+      const matchInfo: MatchDto = await apiRequest<MatchDto>(
+        `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
+      );
       const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
       const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
       const opponentInfo: ParticipantDto = getPlayerInfo(
@@ -229,8 +232,6 @@ export async function getChampionGames(
       console.warn(error);
       continue;
     }
-    // TODO: replace this with rate limiter
-    await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   // turn matchups from a record to a list inside champion stats
@@ -276,7 +277,9 @@ export async function getBestMatch(
   let bestMatchDto: MatchDto | undefined = undefined;
   for (const matchId of matchIds) {
     try {
-      const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+      const matchInfo: MatchDto = await apiRequest<MatchDto>(
+        `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
+      );
       const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
       const kills: number = playerInfo.kills;
       const deaths: number = playerInfo.deaths;
@@ -290,9 +293,6 @@ export async function getBestMatch(
     } catch {
       continue;
     }
-
-    // TODO: replace this with rate limiter
-    await new Promise((resolve) => setTimeout(resolve, 50));
   }
   if (bestMatchDto) {
     return bestMatchDto;

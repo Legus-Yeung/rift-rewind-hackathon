@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { RiotLimiter } from "~/lib/riot/riot-rate-limiter";
 import {
   fetchAccount,
   fetchAllMatchIds,
@@ -131,7 +132,9 @@ async function getAccount(
   tagLine: string,
 ): Promise<NextResponse<AccountDto | ErrorResponse>> {
   try {
-    const data: AccountDto = await fetchAccount(gameName, tagLine);
+    const data: AccountDto = await RiotLimiter.schedule(async () =>
+      fetchAccount(gameName, tagLine),
+    );
     return NextResponse.json(data);
   } catch (err) {
     console.error("Error fetching account:", err);
@@ -147,7 +150,9 @@ async function getMatchHistory(
   searchParams: URLSearchParams,
 ): Promise<NextResponse<string[] | ErrorResponse>> {
   try {
-    const allMatchIds = await fetchAllMatchIds(puuid, searchParams);
+    const allMatchIds = await RiotLimiter.schedule(async () =>
+      fetchAllMatchIds(puuid, searchParams),
+    );
     return NextResponse.json(allMatchIds);
   } catch (err) {
     console.error("Failed to fetch match IDs:", err);
@@ -162,7 +167,9 @@ async function getMatchInfo(
   matchId: string,
 ): Promise<NextResponse<MatchDto | ErrorResponse>> {
   try {
-    const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+    const matchInfo: MatchDto = await RiotLimiter.schedule(async () =>
+      fetchMatchInfo(matchId),
+    );
     return NextResponse.json(matchInfo);
   } catch (err) {
     console.error("Failed to fetch match info:", err);
@@ -177,7 +184,9 @@ async function getMatchTimeline(
   matchId: string,
 ): Promise<NextResponse<TimelineDto | ErrorResponse>> {
   try {
-    const timeline: TimelineDto = await fetchMatchTimeline(matchId);
+    const timeline: TimelineDto = await RiotLimiter.schedule(async () =>
+      fetchMatchTimeline(matchId),
+    );
     return NextResponse.json(timeline);
   } catch (err) {
     console.error("Failed to fetch match timeline:", err);

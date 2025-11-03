@@ -1,7 +1,5 @@
 import Image from "next/image";
 import GeneralPieChart from "~/app/_components/generalPieChart";
-import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import { fetchAccount, fetchMatchHistory } from "~/lib/riot/riot-api-utils";
 import {
   getChampionGames,
   getBestMatchupPerPosition,
@@ -13,7 +11,12 @@ import {
   getMostPlayedChampions,
 } from "~/lib/summoner/summoner-utils";
 import { askBedrock } from "~/lib/ai/ai-utils";
+
+import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+
+import { baseUrl } from "~/lib/api/url-utils";
+import { apiRequest } from "~/lib/api/request-utils";
 
 export default async function SummonerPage({
   params,
@@ -24,20 +27,17 @@ export default async function SummonerPage({
   const [gameName, tagLine]: [string, string] = parseSummoner(gameNameTagLine);
 
   // query riot api for all the info needed to fill the page
-  const data: AccountDto = await fetchAccount(gameName ?? "", tagLine ?? "");
+  const data: AccountDto = await apiRequest<AccountDto>(
+    `${baseUrl}/api/riot?action=account&gameName=${gameName ?? ""}&tagLine=${tagLine ?? ""}`,
+  );
   const puuid: string = data.puuid;
-  const matchHistory: string[] = await fetchMatchHistory(
-    puuid,
-    new URLSearchParams({
-      count: "100",
-      type: "ranked",
-    }),
+  const matchHistory: string[] = await apiRequest<string[]>(
+    `${baseUrl}/api/riot?action=match-history&puuid=${puuid}&searchParams=${new URLSearchParams()}`,
   );
-  const champions: ChampionEntry[] = await getChampionGames(
-    puuid,
-    matchHistory,
-  );
-  const bestMatchDto: MatchDto = await getBestMatch(puuid, matchHistory);
+  const [champions, bestMatchDto] = await Promise.all([
+    getChampionGames(puuid, matchHistory),
+    getBestMatch(puuid, matchHistory),
+  ]);
 
   // extract further insights from the query data
   const top3: ChampionEntry[] = getMostPlayedChampions(champions, 3);

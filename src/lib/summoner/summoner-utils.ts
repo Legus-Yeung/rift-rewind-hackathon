@@ -151,29 +151,25 @@ export async function getChampionGames(
 ): Promise<ChampionEntry[]> {
   const championEntries: Record<string, ChampionEntry> = {};
   const matchupEntries: Record<string, MatchupEntry> = {};
-  for (const matchId of matchIds) {
+
+  const promises = matchIds.map(async (matchId) => {
     try {
       const matchInfo: MatchDto = await apiRequest<MatchDto>(
         `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
       );
-      const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
-      const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
-      const opponentInfo: ParticipantDto = getPlayerInfo(
-        opponentPuuid,
-        matchInfo,
-      );
+      const playerInfo = getPlayerInfo(puuid, matchInfo);
+      const opponentPuuid = getLaneOpponent(puuid, matchInfo);
+      const opponentInfo = getPlayerInfo(opponentPuuid, matchInfo);
 
-      const championKeyObj: ChampionKey = { champion: playerInfo.championName };
-      const championKey: string = createChampionKey(championKeyObj);
-
-      const matchupKeyObj: MatchupKey = {
+      const championKeyObj = { champion: playerInfo.championName };
+      const championKey = createChampionKey(championKeyObj);
+      const matchupKeyObj = {
         position: playerInfo.teamPosition,
         playerChampion: playerInfo.championName,
         opponentChampion: opponentInfo.championName,
       };
-      const matchupKey: string = createMatchupKey(matchupKeyObj);
+      const matchupKey = createMatchupKey(matchupKeyObj);
 
-      // fill uninitialized champion entries
       championEntries[championKey] ??= {
         championKey: championKeyObj,
         championStats: {
@@ -186,19 +182,15 @@ export async function getChampionGames(
         },
       };
 
-      // fill uninitialized matchup entry
       matchupEntries[matchupKey] ??= {
         matchupKey: matchupKeyObj,
         playerStats: { ...createCoreStats() },
         opponentStats: { ...createCoreStats() },
       };
 
-      const matchupInfo: MatchupEntry = matchupEntries[matchupKey];
-      const playerStats: MatchupStats = matchupInfo.playerStats;
-      const opponentStats: MatchupStats = matchupInfo.opponentStats;
-
+      const matchupInfo = matchupEntries[matchupKey];
       updateCoreStats(
-        playerStats,
+        matchupInfo.playerStats,
         playerInfo.kills,
         playerInfo.deaths,
         playerInfo.assists,
@@ -206,7 +198,7 @@ export async function getChampionGames(
         1,
       );
       updateCoreStats(
-        opponentStats,
+        matchupInfo.opponentStats,
         opponentInfo.kills,
         opponentInfo.deaths,
         opponentInfo.assists,
@@ -215,11 +207,6 @@ export async function getChampionGames(
       );
       const championStats =
         championEntries[championKey].championStats[matchupKeyObj.position];
-      if (!championStats) {
-        throw new Error(
-          `Could not get entry with championKey '${championKey}' in position '${matchupKeyObj.position}'`,
-        );
-      }
       updateCoreStats(
         championStats,
         playerInfo.kills,
@@ -230,16 +217,14 @@ export async function getChampionGames(
       );
     } catch (error) {
       console.warn(error);
-      continue;
     }
-  }
+  });
 
-  // turn matchups from a record to a list inside champion stats
+  await Promise.all(promises);
+
   for (const matchupInfo of Object.values(matchupEntries)) {
-    const championKeyObj: ChampionKey = {
-      champion: matchupInfo.matchupKey.playerChampion,
-    };
-    const championKey: string = createChampionKey(championKeyObj);
+    const championKeyObj = { champion: matchupInfo.matchupKey.playerChampion };
+    const championKey = createChampionKey(championKeyObj);
     if (!championEntries[championKey]) {
       throw new Error(
         `Could not find championKey ${championKey} within champion entries`,
@@ -249,6 +234,7 @@ export async function getChampionGames(
       matchupInfo.matchupKey.position
     ].matchups.push(matchupInfo);
   }
+
   return Object.values(championEntries);
 }
 
@@ -273,32 +259,37 @@ export async function getBestMatch(
   puuid: string,
   matchIds: string[],
 ): Promise<MatchDto> {
-  let bestKda = 0;
-  let bestMatchDto: MatchDto | undefined = undefined;
-  for (const matchId of matchIds) {
+  const matchPromises = matchIds.map(async (matchId) => {
     try {
       const matchInfo: MatchDto = await apiRequest<MatchDto>(
         `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
       );
       const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
-      const kills: number = playerInfo.kills;
-      const deaths: number = playerInfo.deaths;
-      const assists: number = playerInfo.assists;
-      const kda: number = (kills + assists) / (deaths == 0 ? 1 : deaths);
+      const kills = playerInfo.kills;
+      const deaths = playerInfo.deaths;
+      const assists = playerInfo.assists;
+      const kda = (kills + assists) / (deaths === 0 ? 1 : deaths);
 
-      if (kda > bestKda) {
-        bestKda = kda;
-        bestMatchDto = matchInfo;
-      }
-    } catch {
-      continue;
+      return { matchInfo, kda };
+    } catch (err) {
+      console.error(err);
+      return null;
     }
-  }
-  if (bestMatchDto) {
-    return bestMatchDto;
-  } else {
+  });
+
+  const results = await Promise.all(matchPromises);
+  const validResults = results.filter(
+    (res): res is { matchInfo: MatchDto; kda: number } => res !== null,
+  );
+
+  if (validResults.length === 0) {
     throw new Error(`Could not retrieve any best match for puuid ${puuid}`);
   }
+  const bestMatch = validResults.reduce((best, current) =>
+    current.kda > best.kda ? current : best,
+  );
+
+  return bestMatch.matchInfo;
 }
 
 function calculateScore(stats: CoreStats): number {

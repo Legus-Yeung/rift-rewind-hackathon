@@ -34,12 +34,10 @@ export default async function SummonerPage({
   const matchHistory: string[] = await apiRequest<string[]>(
     `${baseUrl}/api/riot?action=match-history&puuid=${puuid}&searchParams=${new URLSearchParams()}`,
   );
-
-  const champions: ChampionEntry[] = await getChampionGames(
-    puuid,
-    matchHistory,
-  );
-  const bestMatchDto: MatchDto = await getBestMatch(puuid, matchHistory);
+  const [champions, bestMatchDto] = await Promise.all([
+    getChampionGames(puuid, matchHistory),
+    getBestMatch(puuid, matchHistory),
+  ]);
 
   // extract further insights from the query data
   const top3: ChampionEntry[] = getMostPlayedChampions(champions, 3);

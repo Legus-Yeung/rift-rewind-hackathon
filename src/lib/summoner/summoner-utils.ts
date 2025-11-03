@@ -4,6 +4,13 @@ import { RiotPosition } from "../riot/enums/riot-position";
 import { apiRequest } from "../api/request-utils";
 import { baseUrl } from "../api/url-utils";
 
+type ChampionData = {
+  id: string; // PascalCase ID, e.g., "MissFortune"
+  key: string; // Numeric ID, e.g., "21"
+  name: string; // Full in-game name, e.g., "Miss Fortune"
+  title: string;
+};
+
 export interface CoreStats {
   kills: number;
   deaths: number;
@@ -478,4 +485,36 @@ export function getMostPlayedChampions(
     })
     .slice(0, topX);
   return topChamps;
+}
+
+/**
+ * Given a championName (PascalCase like "MissFortune"),
+ * returns the official in-game name (e.g., "Miss Fortune").
+ *
+ * @param championName the unique PascalCase identifier for the champion
+ * @returns the official in-game name, or the gameName if there is no in-game
+ * @throws an {@link Error} when champion data cannot be fetched
+ */
+export async function getChampionInGameName(
+  championName: string,
+): Promise<string | null> {
+  try {
+    // Fetch Data Dragon champion list
+    const res = await fetch(
+      "https://ddragon.leagueoflegends.com/cdn/14.20.1/data/en_US/champion.json",
+    );
+    if (!res.ok) throw new Error("Failed to fetch champion data");
+
+    const data: { data: Record<string, ChampionData> } = (await res.json()) as {
+      data: Record<string, ChampionData>;
+    };
+
+    const champion: ChampionData | undefined = data.data[championName];
+    if (!champion) return null;
+
+    return champion.name;
+  } catch (err) {
+    console.error("Error fetching champion in-game name:", err);
+    return null;
+  }
 }

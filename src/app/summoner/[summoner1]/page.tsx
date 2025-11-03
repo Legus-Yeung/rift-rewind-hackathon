@@ -10,6 +10,7 @@ import {
   type ChampionEntry,
   getTotalGames,
   getMostPlayedChampions,
+  getChampionInGameName,
 } from "~/lib/summoner/summoner-utils";
 
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
@@ -100,7 +101,7 @@ export default async function SummonerPage({
             </h2>
 
             <div className="flex flex-col gap-4">
-              {bestMatchups.map((entry, i) => {
+              {bestMatchups.map(async (entry, i) => {
                 const player = entry.playerStats;
                 const opponent = entry.opponentStats;
 
@@ -116,6 +117,24 @@ export default async function SummonerPage({
                 const playerIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.playerChampion}.png`;
                 const opponentIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.opponentChampion}.png`;
 
+                let playerChampionName: string;
+                let opponentChampionName: string;
+
+                try {
+                  playerChampionName =
+                    (await getChampionInGameName(
+                      entry.matchupKey.playerChampion,
+                    )) ?? entry.matchupKey.playerChampion;
+                  opponentChampionName =
+                    (await getChampionInGameName(
+                      entry.matchupKey.opponentChampion,
+                    )) ?? entry.matchupKey.opponentChampion;
+                } catch (error) {
+                  console.warn(error);
+                  playerChampionName = entry.matchupKey.playerChampion;
+                  opponentChampionName = entry.matchupKey.opponentChampion;
+                }
+
                 return (
                   <div
                     key={i}
@@ -125,13 +144,13 @@ export default async function SummonerPage({
                     <div className="flex w-24 flex-col items-center">
                       <Image
                         src={playerIcon}
-                        alt={entry.matchupKey.playerChampion}
+                        alt={playerChampionName}
                         width={56}
                         height={56}
                         className="rounded-full border-2 border-blue-400"
                       />
                       <p className="mt-1 text-sm font-semibold text-blue-300">
-                        {entry.matchupKey.playerChampion}
+                        {playerChampionName}
                       </p>
                     </div>
 
@@ -155,13 +174,13 @@ export default async function SummonerPage({
                     <div className="flex w-24 flex-col items-center">
                       <Image
                         src={opponentIcon}
-                        alt={entry.matchupKey.opponentChampion}
+                        alt={opponentChampionName}
                         width={56}
                         height={56}
                         className="rounded-full border-2 border-red-400"
                       />
                       <p className="mt-1 text-sm font-semibold text-red-300">
-                        {entry.matchupKey.opponentChampion}
+                        {opponentChampionName}
                       </p>
                     </div>
                   </div>

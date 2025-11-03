@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import type { YearEndSummaryData } from "~/lib/player";
+import { placeholderYearEndData } from "~/lib/player";
 
 interface ChatResponse {
   question: string;
   answer: string;
 }
 
-async function askBedrock(question: string): Promise<string> {
+async function askBedrock(question: string, playerData?: YearEndSummaryData): Promise<string> {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, playerData }),
   });
 
   if (!res.ok) {
@@ -31,6 +34,10 @@ interface Message {
 export default function ChatPage() {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  // TODO: Replace with actual player data from API or context
+  // For now, using placeholder data for demonstration
+  const [usePlayerData] = useState(true);
+  const playerData = usePlayerData ? placeholderYearEndData : undefined;
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -46,7 +53,7 @@ export default function ChatPage() {
     setQuestion("");
     
     try {
-      const response: string = await askBedrock(userMessage.content);
+      const response: string = await askBedrock(userMessage.content, playerData);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -68,8 +75,15 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-white shadow-sm border-b px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">AI Assistant</h1>
-        <p className="text-gray-600 mt-1">Ask me anything about League of Legends!</p>
+        <h1 className="text-2xl font-bold text-gray-900">League Coaching Agent</h1>
+        <p className="text-gray-600 mt-1">
+          Your year-end League of Legends retrospective coach! Get personalized insights and celebrate your achievements.
+        </p>
+        {playerData && (
+          <p className="text-xs text-blue-600 mt-2">
+            📊 Analyzing data for {playerData.playerOverview.summonerName}#{playerData.playerOverview.tagLine}
+          </p>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-6">
@@ -92,7 +106,9 @@ export default function ChatPage() {
                           <span className="text-sm font-medium text-gray-600">Assistant</span>
                         </div>
                       )}
-                      <div className="whitespace-pre-wrap">{message.content}</div>
+                      <div className="markdown-content">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -103,8 +119,15 @@ export default function ChatPage() {
                   <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-white text-xl font-bold">AI</span>
                   </div>
-                  <p className="text-lg font-medium">Welcome! Ask me anything</p>
-                  <p className="text-sm mt-1">I can help you with League of Legends questions</p>
+                  <p className="text-lg font-medium">Welcome to your year-end review! 🎉</p>
+                  <p className="text-sm mt-1">
+                    Ask me about your performance, achievements, or areas to improve. I'll analyze your year in League!
+                  </p>
+                  {playerData && (
+                    <p className="text-xs mt-2 text-blue-600">
+                      Try: "What did I do well this year?" or "Give me my year-end summary"
+                    </p>
+                  )}
                 </div>
               </div>
             )}

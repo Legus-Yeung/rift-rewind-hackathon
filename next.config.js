@@ -16,6 +16,12 @@ const config = {
   },
   images: {
     domains: ["ddragon.leagueoflegends.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cmsassets.rgpub.io",
+      },
+    ],
   },
 };
 

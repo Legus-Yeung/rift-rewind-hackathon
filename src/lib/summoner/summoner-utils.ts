@@ -11,79 +11,191 @@ type ChampionData = {
   title: string;
 };
 
-export interface CoreStats {
+export interface Stats {
+  aggregate: MatchStats;
+  average: AverageStats;
+}
+
+export interface MatchStats {
   kills: number;
   deaths: number;
   assists: number;
-  wins: number;
   games: number;
+  //etc
 }
 
-export interface PositionEntry {
-  positionKey: RiotPosition;
-  positionStats: PositionStats;
+export interface AverageStats {
+  perDeath: MatchStats;
+  perGame: MatchStats;
 }
 
-export interface PositionStats extends CoreStats {}
+export interface SummonerEntry {
+  wins: OutcomeEntry;
+  losses: OutcomeEntry;
+}
 
-export interface ChampionKey {
-  champion: string;
+export interface OutcomeEntry {
+  stats: Stats;
+  champion: Record<string, ChampionEntry>;
 }
 
 export interface ChampionEntry {
-  championKey: ChampionKey;
-  championStats: Record<RiotPosition, ChampionStats>;
+  stats: Stats;
+  position: Record<RiotPosition, PositionEntry>;
 }
 
-export interface ChampionStats extends CoreStats {
-  matchups: MatchupEntry[];
+export interface PositionEntry {
+  stats: Stats;
+  matchup: Record<string, MatchupEntry>;
 }
 
 export interface MatchupEntry {
-  matchupKey: MatchupKey;
-  playerStats: MatchupStats;
-  opponentStats: MatchupStats;
+  player: Stats;
+  opponent: Stats;
 }
 
-export interface MatchupKey {
-  position: RiotPosition;
-  playerChampion: string;
-  opponentChampion: string;
+/** Creates an empty Stats object */
+export function createStats(): Stats {
+  return {
+    aggregate: createMatchStats(),
+    average: createAverageStats(),
+  };
 }
 
-export interface MatchupStats extends CoreStats {}
-
-function createMatchupKey(key: MatchupKey): string {
-  return `${key.playerChampion}-${key.opponentChampion}-${key.position}`;
+/** Creates an empty AverageStats object */
+export function createAverageStats(): AverageStats {
+  return {
+    perDeath: createMatchStats(),
+    perGame: createMatchStats(),
+  };
 }
 
-function createChampionKey(key: ChampionKey): string {
-  return `${key.champion}`;
-}
-
-function createCoreStats(): CoreStats {
+/** Creates an empty MatchStats object */
+export function createMatchStats(): MatchStats {
   return {
     kills: 0,
     deaths: 0,
     assists: 0,
-    wins: 0,
     games: 0,
   };
 }
 
-function updateCoreStats(
-  stats: CoreStats,
-  kills: number,
-  deaths: number,
-  assists: number,
-  wins: number,
-  games: number,
-) {
-  stats.kills += kills;
-  stats.deaths += deaths;
-  stats.assists += assists;
-  stats.wins += wins;
-  stats.games += games;
+export function updateMatchStats(
+  stats: MatchStats,
+  delta: Partial<MatchStats>,
+): void {
+  Object.entries(delta).forEach(([key, value]) => {
+    const k = key as keyof MatchStats;
+    stats[k] =
+      typeof value === "number"
+        ? (stats[k] as number) + (value as number)
+        : value;
+  });
+}
+
+export function parseMatchStats(participant: ParticipantDto): MatchStats {
+  const stats: MatchStats = {
+    kills: participant.kills,
+    deaths: participant.deaths,
+    assists: participant.assists,
+    games: 1,
+  };
+  return stats;
+}
+
+export function averageMatchStats(
+  stats: MatchStats,
+  denominator: number,
+): MatchStats {
+  if (denominator === 0) return { ...stats };
+  const result = { ...stats };
+  (Object.keys(stats) as (keyof MatchStats)[]).forEach((key) => {
+    const value = stats[key];
+    result[key] = (value / denominator) as MatchStats[typeof key];
+  });
+  return result;
+}
+
+function averageStats(stats: Stats) {
+  stats.average.perDeath = averageMatchStats(
+    stats.aggregate,
+    stats.aggregate.deaths,
+  );
+  stats.average.perGame = averageMatchStats(
+    stats.aggregate,
+    stats.aggregate.games,
+  );
+}
+
+function averageOutcomeStats(outcome: OutcomeEntry): void {
+  averageStats(outcome.stats);
+  for (const champion of Object.keys(outcome.champion)) {
+    const championEntry: ChampionEntry | undefined = outcome.champion[champion];
+    if (!championEntry) continue;
+    averageStats(championEntry.stats);
+    for (const position of Object.keys(
+      championEntry.position,
+    ) as RiotPosition[]) {
+      const positionEntry: PositionEntry = championEntry.position[position];
+      averageStats(positionEntry.stats);
+      for (const matchup of Object.keys(positionEntry.matchup)) {
+        const matchupEntry: MatchupEntry | undefined =
+          positionEntry.matchup[matchup];
+        if (!matchupEntry) continue;
+        averageStats(positionEntry.stats);
+      }
+    }
+  }
+}
+
+function averageAllStats(summoner: SummonerEntry): void {
+  averageOutcomeStats(summoner.wins);
+  averageOutcomeStats(summoner.losses);
+}
+
+/** Creates an empty SummonerEntry */
+export function createSummonerEntry(): SummonerEntry {
+  return {
+    wins: createOutcomeEntry(),
+    losses: createOutcomeEntry(),
+  };
+}
+
+/** Creates an empty OutcomeEntry */
+export function createOutcomeEntry(): OutcomeEntry {
+  return {
+    stats: createStats(),
+    champion: {},
+  };
+}
+
+/** Creates an empty ChampionEntry */
+export function createChampionEntry(): ChampionEntry {
+  const roles: Record<RiotPosition, PositionEntry> = {
+    TOP: createPositionEntry(),
+    JUNGLE: createPositionEntry(),
+    MIDDLE: createPositionEntry(),
+    BOTTOM: createPositionEntry(),
+    UTILITY: createPositionEntry(),
+    UNKNOWN: createPositionEntry(),
+  };
+  return { stats: createStats(), position: roles };
+}
+
+/** Creates an empty PositionEntry */
+export function createPositionEntry(): PositionEntry {
+  return {
+    stats: createStats(),
+    matchup: {},
+  };
+}
+
+/** Creates an empty MatchupEntry */
+export function createMatchupEntry(): MatchupEntry {
+  return {
+    player: createStats(),
+    opponent: createStats(),
+  };
 }
 
 /**
@@ -155,336 +267,78 @@ export function parseSummoner(str: string): [string, string] {
 export async function getChampionGames(
   puuid: string,
   matchIds: string[],
-): Promise<ChampionEntry[]> {
-  const championEntries: Record<string, ChampionEntry> = {};
-  const matchupEntries: Record<string, MatchupEntry> = {};
-
-  const promises = matchIds.map(async (matchId) => {
+): Promise<SummonerEntry> {
+  const summoner: SummonerEntry = createSummonerEntry();
+  for (const matchId of matchIds) {
     try {
-      const matchInfo: MatchDto = await apiRequest<MatchDto>(
-        `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
-      );
-      const playerInfo = getPlayerInfo(puuid, matchInfo);
-      const opponentPuuid = getLaneOpponent(puuid, matchInfo);
-      const opponentInfo = getPlayerInfo(opponentPuuid, matchInfo);
-
-      const championKeyObj = { champion: playerInfo.championName };
-      const championKey = createChampionKey(championKeyObj);
-      const matchupKeyObj = {
-        position: playerInfo.teamPosition,
-        playerChampion: playerInfo.championName,
-        opponentChampion: opponentInfo.championName,
-      };
-      const matchupKey = createMatchupKey(matchupKeyObj);
-
-      championEntries[championKey] ??= {
-        championKey: championKeyObj,
-        championStats: {
-          TOP: { ...createCoreStats(), matchups: [] },
-          MIDDLE: { ...createCoreStats(), matchups: [] },
-          JUNGLE: { ...createCoreStats(), matchups: [] },
-          BOTTOM: { ...createCoreStats(), matchups: [] },
-          UTILITY: { ...createCoreStats(), matchups: [] },
-          UNKNOWN: { ...createCoreStats(), matchups: [] },
-        },
-      };
-
-      matchupEntries[matchupKey] ??= {
-        matchupKey: matchupKeyObj,
-        playerStats: { ...createCoreStats() },
-        opponentStats: { ...createCoreStats() },
-      };
-
-      const matchupInfo = matchupEntries[matchupKey];
-      updateCoreStats(
-        matchupInfo.playerStats,
-        playerInfo.kills,
-        playerInfo.deaths,
-        playerInfo.assists,
-        playerInfo.win ? 1 : 0,
-        1,
-      );
-      updateCoreStats(
-        matchupInfo.opponentStats,
-        opponentInfo.kills,
-        opponentInfo.deaths,
-        opponentInfo.assists,
-        opponentInfo.win ? 1 : 0,
-        1,
-      );
-      const championStats =
-        championEntries[championKey].championStats[matchupKeyObj.position];
-      updateCoreStats(
-        championStats,
-        playerInfo.kills,
-        playerInfo.assists,
-        playerInfo.deaths,
-        playerInfo.win ? 1 : 0,
-        1,
-      );
-    } catch (error) {
-      console.warn(error);
-    }
-  });
-
-  await Promise.all(promises);
-
-  for (const matchupInfo of Object.values(matchupEntries)) {
-    const championKeyObj = { champion: matchupInfo.matchupKey.playerChampion };
-    const championKey = createChampionKey(championKeyObj);
-    if (!championEntries[championKey]) {
-      throw new Error(
-        `Could not find championKey ${championKey} within champion entries`,
-      );
-    }
-    championEntries[championKey].championStats[
-      matchupInfo.matchupKey.position
-    ].matchups.push(matchupInfo);
-  }
-
-  return Object.values(championEntries);
-}
-
-export function getPositionStats(
-  championEntries: ChampionEntry[],
-  position: RiotPosition,
-): PositionEntry {
-  const positionEntry: PositionEntry = {
-    positionKey: position,
-    positionStats: {
-      ...createCoreStats(),
-    },
-  };
-  for (const championEntry of championEntries) {
-    positionEntry.positionStats.games +=
-      championEntry.championStats[position].games;
-  }
-  return positionEntry;
-}
-
-export async function getBestMatch(
-  puuid: string,
-  matchIds: string[],
-): Promise<MatchDto> {
-  const matchPromises = matchIds.map(async (matchId) => {
-    try {
+      // get Riot dtos
       const matchInfo: MatchDto = await apiRequest<MatchDto>(
         `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
       );
       const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
-      const kills = playerInfo.kills;
-      const deaths = playerInfo.deaths;
-      const assists = playerInfo.assists;
-      const kda = (kills + assists) / (deaths === 0 ? 1 : deaths);
-
-      return { matchInfo, kda };
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  });
-
-  const results = await Promise.all(matchPromises);
-  const validResults = results.filter(
-    (res): res is { matchInfo: MatchDto; kda: number } => res !== null,
-  );
-
-  if (validResults.length === 0) {
-    throw new Error(`Could not retrieve any best match for puuid ${puuid}`);
-  }
-  const bestMatch = validResults.reduce((best, current) =>
-    current.kda > best.kda ? current : best,
-  );
-
-  return bestMatch.matchInfo;
-}
-
-function calculateScore(stats: CoreStats): number {
-  return stats.wins / stats.games;
-}
-
-/**
- * Gets the best matchup for a given champion for each position.
- *
- * @param championEntriesw
- * @param champion
- * @returns
- */
-export function getBestMatchupsByChampion(
-  championEntries: ChampionEntry[],
-  champion: string,
-): MatchupEntry[] {
-  const championEntry: ChampionEntry | undefined = championEntries.find(
-    (m) => m.championKey.champion === champion,
-  );
-  if (!championEntry) {
-    throw new Error(`Could not find best matchup by champion ${champion}`);
-  }
-  const bestMatchups: MatchupEntry[] = [];
-  // best matchups for each role
-  for (const position of Object.values(championEntry.championStats)) {
-    if (position.matchups.length == 0) continue;
-    const bestMatchup: MatchupEntry = position.matchups.reduce((best, cur) => {
-      const bestWinrate = calculateScore(best.playerStats);
-      const curWinrate = calculateScore(cur.playerStats);
-      return curWinrate > bestWinrate ? cur : best;
-    });
-    bestMatchups.push(bestMatchup);
-  }
-  // best matchup out of all positions
-  return bestMatchups;
-}
-
-/**
- * Gets the best matchup for a given champion out of all positions.
- *
- * @param championEntries
- * @param champion
- * @returns
- */
-export function getBestMatchupByChampion(
-  championEntries: ChampionEntry[],
-  champion: string,
-): MatchupEntry {
-  const bestMatchups: MatchupEntry[] = getBestMatchupsByChampion(
-    championEntries,
-    champion,
-  );
-  if (bestMatchups.length == 0) {
-    throw new Error(
-      `Could not find best role matchup for champion ${champion}: No entries with the champion exist`,
-    );
-  }
-  return bestMatchups.reduce((best, cur) => {
-    const bestWinrate = calculateScore(best.playerStats);
-    const curWinrate = calculateScore(cur.playerStats);
-    return curWinrate > bestWinrate ? cur : best;
-  });
-}
-
-/**
- * Gets the best matchup for a given position.
- *
- * @param championEntries
- * @param position
- * @returns
- */
-export function getBestMatchupByPosition(
-  championEntries: ChampionEntry[],
-  position: RiotPosition,
-): MatchupEntry {
-  let bestPositionMatchup: MatchupEntry | undefined;
-  for (const championEntry of championEntries) {
-    const bestMatchups: MatchupEntry[] =
-      championEntry.championStats[position].matchups;
-    if (bestMatchups.length == 0) {
-      continue;
-    }
-    const bestMatchupChampion: MatchupEntry = bestMatchups.reduce(
-      (best, cur) => {
-        const bestWinrate = calculateScore(best.playerStats);
-        const curWinrate = calculateScore(cur.playerStats);
-        return curWinrate > bestWinrate ? cur : best;
-      },
-    );
-    if (
-      !bestPositionMatchup ||
-      calculateScore(bestPositionMatchup.playerStats) <
-        calculateScore(bestMatchupChampion.playerStats)
-    ) {
-      bestPositionMatchup = bestMatchupChampion;
-    }
-  }
-  if (!bestPositionMatchup) {
-    throw new Error(`Could not find best matchup for position ${position}`);
-  }
-  return bestPositionMatchup;
-}
-
-/**
- * Gets the best matchup for every position.
- *
- * @param championEntries
- * @param position
- * @returns
- */
-export function getBestMatchupPerPosition(
-  championEntries: ChampionEntry[],
-): MatchupEntry[] {
-  const bestPositionMatchups: Record<string, MatchupEntry> = {};
-  for (const championEntry of championEntries) {
-    for (const position of Object.values(RiotPosition)) {
-      const bestMatchups: MatchupEntry[] =
-        championEntry.championStats[position].matchups;
-      if (bestMatchups.length == 0) {
-        continue;
-      }
-      const bestMatchupChampion: MatchupEntry = bestMatchups.reduce(
-        (best, cur) => {
-          const bestWinrate = calculateScore(best.playerStats);
-          const curWinrate = calculateScore(cur.playerStats);
-          return curWinrate > bestWinrate ? cur : best;
-        },
+      const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
+      const opponentInfo: ParticipantDto = getPlayerInfo(
+        opponentPuuid,
+        matchInfo,
       );
-      if (
-        !bestPositionMatchups[position] ||
-        calculateScore(bestPositionMatchups[position].playerStats) <
-          calculateScore(bestMatchupChampion.playerStats)
-      ) {
-        bestPositionMatchups[position] = bestMatchupChampion;
-      }
+
+      // ready summoner heirarchy for entry
+      const outcome: OutcomeEntry =
+        summoner[playerInfo.win ? "wins" : "losses"];
+      const champion: ChampionEntry = (outcome.champion[
+        playerInfo.championName
+      ] ??= createChampionEntry());
+      const position: PositionEntry =
+        champion.position[playerInfo.teamPosition];
+      const matchup: MatchupEntry = (position.matchup[
+        opponentInfo.championName
+      ] ??= createMatchupEntry());
+
+      // get the MatchStats for the given match for both players in the matchup
+      const playerStats: MatchStats = parseMatchStats(playerInfo);
+      const opponentStats: MatchStats = parseMatchStats(opponentInfo);
+
+      // update stats
+      updateMatchStats(outcome.stats.aggregate, playerStats);
+      updateMatchStats(champion.stats.aggregate, playerStats);
+      updateMatchStats(position.stats.aggregate, playerStats);
+      updateMatchStats(matchup.player.aggregate, playerStats);
+      updateMatchStats(matchup.opponent.aggregate, opponentStats);
+    } catch (error) {
+      console.warn(error);
     }
   }
-  return Object.values(bestPositionMatchups);
+
+  averageAllStats(summoner);
+  return summoner;
 }
 
-export function getBestMatchupByChampionAndPosition(
-  championEntries: ChampionEntry[],
+// best matchups for each champion position
+export function getBestMatchupsByChampion(
+  summoner: SummonerEntry,
   champion: string,
-  position: RiotPosition,
-): MatchupEntry {
-  const bestMatchups: MatchupEntry[] = getBestMatchupsByChampion(
-    championEntries,
-    champion,
-  );
-  if (bestMatchups.length == 0) {
-    throw new Error(
-      `Could not find best role matchup for champion ${champion}: No entries with the champion exist`,
-    );
-  }
-  const bestMatchup: MatchupEntry | undefined = bestMatchups.find((e) => {
-    return e.matchupKey.position == position;
-  });
-  if (!bestMatchup) {
-    throw new Error(
-      `Could not find best matchup for champion ${champion} in position ${position}`,
-    );
-  }
-  return bestMatchup;
+): void {
+  return;
 }
 
-export function getTotalGames(entry: ChampionEntry): number {
-  const games: number = Object.values(entry.championStats).reduce(
-    (total, cur) => {
-      return total + cur.games;
-    },
-    0,
-  );
-  return games;
+// best matchup out of all the positions
+export function getBestMatchupByChampion(
+  summoner: SummonerEntry,
+  champion: string,
+): void {
+  return;
+}
+
+// best matchup for every position
+export function getBestMatchupPerPosition(summoner: SummonerEntry): void {
+  return;
 }
 
 export function getMostPlayedChampions(
-  entries: ChampionEntry[],
+  summoner: SummonerEntry,
   topX: number,
-): ChampionEntry[] {
-  const topChamps: ChampionEntry[] = entries
-    .sort((a, b) => {
-      const aGames: number = getTotalGames(a);
-      const bGames: number = getTotalGames(b);
-      return aGames - bGames;
-    })
-    .slice(0, topX);
-  return topChamps;
+): string[] {
+  return [];
 }
 
 /**

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Background from "../_components/background";
 
 interface ChatResponse {
   question: string;
@@ -71,7 +72,7 @@ export default function ChatPage() {
         <h1 className="text-2xl font-bold text-gray-900">AI Assistant</h1>
         <p className="text-gray-600 mt-1">Ask me anything about League of Legends!</p>
       </div>
-
+      
       <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 py-6">
         <div className="flex-1 bg-white rounded-lg shadow-sm border overflow-hidden flex flex-col">
           <div className="flex-1 p-6 overflow-y-auto min-h-[400px]">
@@ -109,7 +110,7 @@ export default function ChatPage() {
               </div>
             )}
           </div>
-
+            
           <div className="border-t bg-gray-50 p-4">
             <div className="flex gap-3">
               <input

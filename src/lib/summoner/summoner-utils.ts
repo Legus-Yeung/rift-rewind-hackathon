@@ -53,8 +53,6 @@ export const PARTICIPANT_STATS_FIELDS = [
   "champLevel",
   "longestTimeSpentLiving",
   "totalTimeSpentDead",
-
-  "games",
 ] as const;
 
 export const CHALLENGES_STATS_FIELDS = [
@@ -208,6 +206,7 @@ const MATCH_STATS_FIELDS = [
   ...PARTICIPANT_STATS_FIELDS,
   ...CHALLENGES_STATS_FIELDS,
   ...INFO_STATS_FIELDS,
+  "games",
 ] as const;
 
 type ChampionData = {
@@ -287,7 +286,7 @@ export function parseMatchStats(
   match: MatchDto,
   participant: ParticipantDto,
 ): MatchStats {
-  const stats = {} as MatchStats;
+  const stats = createMatchStats();
   for (const key of PARTICIPANT_STATS_FIELDS) {
     stats[key] = (participant[key as keyof ParticipantDto] ?? 0) as number;
   }

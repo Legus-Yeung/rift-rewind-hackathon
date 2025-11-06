@@ -1,16 +1,11 @@
 import Image from "next/image";
 import GeneralPieChart from "~/app/_components/generalPieChart";
 import ErrorFallback from "~/app/_components/errorFallback";
+
 import {
   getChampionGames,
-  getBestMatchupPerPosition,
   parseSummoner,
-  getBestMatch,
-  type MatchupEntry,
-  type ChampionEntry,
-  getTotalGames,
-  getMostPlayedChampions,
-  getChampionInGameName,
+  type SummonerEntry,
 } from "~/lib/summoner/summoner-utils";
 
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
@@ -30,6 +25,29 @@ export default async function SummonerPage({
     // Parse "GameName#TagLine"
     const [gameName, tagLine] = parseSummoner(summoner1);
 
+    const response = await fetch(
+      `${baseUrl}/api/summoner?gameName=${gameName}&tagLine=${tagLine}`,
+      {
+        method: "POST",
+      },
+    );
+
+    if (!response.body) throw new Error("No response body");
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let result = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      result += decoder.decode(value, { stream: true });
+      console.log("Received chunk:", decoder.decode(value));
+    }
+
+    // Parse the final JSON once fully received
+    const summoner: SummonerEntry = JSON.parse(result);
+
     // Fetch base account info
     const accountData: AccountDto = await apiRequest<AccountDto>(
       `${baseUrl}/api/riot?action=account&gameName=${gameName ?? ""}&tagLine=${tagLine ?? ""}`,
@@ -38,23 +56,6 @@ export default async function SummonerPage({
     // Get match history and details
     const matchHistory: string[] = await apiRequest<string[]>(
       `${baseUrl}/api/riot?action=match-history&puuid=${accountData.puuid}&searchParams=${new URLSearchParams()}`,
-    );
-
-    // Fetch stats concurrently
-    const [champions, bestMatchDto]: [ChampionEntry[], MatchDto] =
-      await Promise.all([
-        getChampionGames(accountData.puuid, matchHistory ?? []),
-        getBestMatch(accountData.puuid, matchHistory ?? []),
-      ]);
-
-    // Extract insights
-    const top3 = getMostPlayedChampions(champions, 3);
-    const bestMatchups: MatchupEntry[] = getBestMatchupPerPosition(champions);
-    const championGames: Record<string, string | number>[] = champions.map(
-      (value) => ({
-        name: value.championKey.champion,
-        games: getTotalGames(value),
-      }),
     );
 
     return (
@@ -82,110 +83,7 @@ export default async function SummonerPage({
             </div>
 
             <div className="w-full rounded-2xl bg-white/10 p-4 shadow-md">
-              <h3 className="mb-3 text-center text-xl font-semibold text-purple-200">
-                Champion Distribution
-              </h3>
-              <GeneralPieChart
-                data={championGames}
-                title="Champion Distribution"
-                nameKey="name"
-                dataKey="games"
-              />
-            </div>
-          </div>
-
-          {/* Best Matchups */}
-          <div className="mt-12 rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
-            <h2 className="mb-4 text-center text-2xl font-semibold text-purple-200">
-              Best Matchups
-            </h2>
-
-            <div className="flex flex-col gap-4">
-              {bestMatchups.map(async (entry, i) => {
-                const player = entry.playerStats;
-                const opponent = entry.opponentStats;
-
-                const playerKDA = (
-                  (player.kills + player.assists) /
-                  Math.max(1, player.deaths)
-                ).toFixed(2);
-                const opponentKDA = (
-                  (opponent.kills + opponent.assists) /
-                  Math.max(1, opponent.deaths)
-                ).toFixed(2);
-
-                const playerIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.playerChampion}.png`;
-                const opponentIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.opponentChampion}.png`;
-
-                let playerChampionName: string;
-                let opponentChampionName: string;
-
-                try {
-                  playerChampionName =
-                    (await getChampionInGameName(
-                      entry.matchupKey.playerChampion,
-                    )) ?? entry.matchupKey.playerChampion;
-                  opponentChampionName =
-                    (await getChampionInGameName(
-                      entry.matchupKey.opponentChampion,
-                    )) ?? entry.matchupKey.opponentChampion;
-                } catch (error) {
-                  console.warn(error);
-                  playerChampionName = entry.matchupKey.playerChampion;
-                  opponentChampionName = entry.matchupKey.opponentChampion;
-                }
-
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded-xl bg-gray-800/70 p-4 shadow transition hover:bg-gray-700/80"
-                  >
-                    {/* Player */}
-                    <div className="flex w-24 flex-col items-center">
-                      <Image
-                        src={playerIcon}
-                        alt={playerChampionName}
-                        width={56}
-                        height={56}
-                        className="rounded-full border-2 border-blue-400"
-                      />
-                      <p className="mt-1 text-sm font-semibold text-blue-300">
-                        {playerChampionName}
-                      </p>
-                    </div>
-
-                    {/* Player Stats */}
-                    <div className="flex flex-col items-center text-sm">
-                      <p className="font-semibold text-green-400">
-                        Wins: {player.wins}
-                      </p>
-                      <p>KDA: {playerKDA}</p>
-                    </div>
-
-                    {/* Opponent Stats */}
-                    <div className="flex flex-col items-center text-sm">
-                      <p className="font-semibold text-red-400">
-                        Wins: {opponent.wins}
-                      </p>
-                      <p>KDA: {opponentKDA}</p>
-                    </div>
-
-                    {/* Opponent */}
-                    <div className="flex w-24 flex-col items-center">
-                      <Image
-                        src={opponentIcon}
-                        alt={opponentChampionName}
-                        width={56}
-                        height={56}
-                        className="rounded-full border-2 border-red-400"
-                      />
-                      <p className="mt-1 text-sm font-semibold text-red-300">
-                        {opponentChampionName}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+              {JSON.stringify(summoner, null, 2)}
             </div>
           </div>
         </div>

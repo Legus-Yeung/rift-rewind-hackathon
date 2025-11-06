@@ -51,7 +51,7 @@ export interface ParticipantDto {
   consumablesPurchased: number;
 
   /** (ChallengesDto) Player challenges (very large set of metrics). */
-  challenges?: ChallengesDto;
+  challenges: ChallengesDto;
 
   /** (int) Damage dealt to buildings. */
   damageDealtToBuildings: number;

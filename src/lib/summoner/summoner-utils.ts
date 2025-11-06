@@ -3,6 +3,212 @@ import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
 import { RiotPosition } from "../riot/enums/riot-position";
 import { apiRequest } from "../api/request-utils";
 import { baseUrl } from "../api/url-utils";
+import type { InfoDto } from "../riot/dtos/match/info.dto";
+import type { ChallengesDto } from "../riot/dtos/match/challenges.dto";
+
+export const INFO_STATS_FIELDS = ["gameDuration"] as const;
+
+export const PARTICIPANT_STATS_FIELDS = [
+  "kills",
+  "deaths",
+  "assists",
+  "doubleKills",
+  "tripleKills",
+  "quadraKills",
+  "pentaKills",
+
+  "totalDamageDealt",
+  "totalDamageDealtToChampions",
+  "physicalDamageDealt",
+  "magicDamageDealt",
+  "trueDamageDealt",
+  "totalDamageTaken",
+  "physicalDamageTaken",
+  "magicDamageTaken",
+  "trueDamageTaken",
+
+  "damageDealtToObjectives",
+  "damageDealtToTurrets",
+  "turretKills",
+  "inhibitorKills",
+
+  "visionScore",
+  "wardsPlaced",
+  "wardsKilled",
+  "detectorWardsPlaced",
+
+  "goldEarned",
+  "goldSpent",
+
+  "totalMinionsKilled",
+  "neutralMinionsKilled",
+  "neutralMinionsKilledEnemyJungle",
+  "neutralMinionsKilledTeamJungle",
+
+  "timeCCingOthers",
+  "totalHeal",
+  "totalUnitsHealed",
+  "largestKillingSpree",
+  "largestMultiKill",
+  "champLevel",
+  "longestTimeSpentLiving",
+  "totalTimeSpentDead",
+
+  "games",
+] as const;
+
+export const CHALLENGES_STATS_FIELDS = [
+  "12AssistStreakCount",
+  "baronBuffGoldAdvantageOverThreshold",
+  "controlWardTimeCoverageInRiverOrEnemyHalf",
+  "earliestBaron",
+  "earliestDragonTakedown",
+  "earliestElderDragon",
+  "earlyLaningPhaseGoldExpAdvantage",
+  "fasterSupportQuestCompletion",
+  "fastestLegendary",
+  "hadAfkTeammate",
+  "highestChampionDamage",
+  "highestCrowdControlScore",
+  "highestWardKills",
+  "junglerKillsEarlyJungle",
+  "killsOnLanersEarlyJungleAsJungler",
+  "laningPhaseGoldExpAdvantage",
+  "legendaryCount",
+  "maxCsAdvantageOnLaneOpponent",
+  "maxLevelLeadLaneOpponent",
+  "mostWardsDestroyedOneSweeper",
+  "mythicItemUsed",
+  "playedChampSelectPosition",
+  "soloTurretsLategame",
+  "takedownsFirst25Minutes",
+  "teleportTakedowns",
+  "thirdInhibitorDestroyedTime",
+  "threeWardsOneSweeperCount",
+  "visionScoreAdvantageLaneOpponent",
+  "InfernalScalePickup",
+  "fistBumpParticipation",
+  "voidMonsterKill",
+  "abilityUses",
+  "acesBefore15Minutes",
+  "alliedJungleMonsterKills",
+  "baronTakedowns",
+  "blastConeOppositeOpponentCount",
+  "bountyGold",
+  "buffsStolen",
+  "completeSupportQuestInTime",
+  "controlWardsPlaced",
+  "damagePerMinute",
+  "damageTakenOnTeamPercentage",
+  "dancedWithRiftHerald",
+  "deathsByEnemyChamps",
+  "dodgeSkillShotsSmallWindow",
+  "doubleAces",
+  "dragonTakedowns",
+  "effectiveHealAndShielding",
+  "elderDragonKillsWithOpposingSoul",
+  "elderDragonMultikills",
+  "enemyChampionImmobilizations",
+  "enemyJungleMonsterKills",
+  "epicMonsterKillsNearEnemyJungler",
+  "epicMonsterKillsWithin30SecondsOfSpawn",
+  "epicMonsterSteals",
+  "epicMonsterStolenWithoutSmite",
+  "firstTurretKilled",
+  "firstTurretKilledTime",
+  "flawlessAces",
+  "fullTeamTakedown",
+  "gameLength",
+  "goldPerMinute",
+  "hadOpenNexus",
+  "immobilizeAndKillWithAlly",
+  "initialBuffCount",
+  "initialCrabCount",
+  "jungleCsBefore10Minutes",
+  "junglerTakedownsNearDamagedEpicMonster",
+  "kda",
+  "killAfterHiddenWithAlly",
+  "killedChampTookFullTeamDamageSurvived",
+  "killingSprees",
+  "killParticipation",
+  "killsNearEnemyTurret",
+  "killsOnOtherLanesEarlyJungleAsLaner",
+  "killsOnRecentlyHealedByAramPack",
+  "killsUnderOwnTurret",
+  "killsWithHelpFromEpicMonster",
+  "knockEnemyIntoTeamAndKill",
+  "kTurretsDestroyedBeforePlatesFall",
+  "landSkillShotsEarlyGame",
+  "laneMinionsFirst10Minutes",
+  "lostAnInhibitor",
+  "maxKillDeficit",
+  "mejaisFullStackInTime",
+  "moreEnemyJungleThanOpponent",
+  "multiKillOneSpell",
+  "multikills",
+  "multikillsAfterAggressiveFlash",
+  "multiTurretRiftHeraldCount",
+  "outerTurretExecutesBefore10Minutes",
+  "outnumberedKills",
+  "outnumberedNexusKill",
+  "perfectDragonSoulsTaken",
+  "perfectGame",
+  "pickKillWithAlly",
+  "poroExplosions",
+  "quickCleanse",
+  "quickFirstTurret",
+  "quickSoloKills",
+  "riftHeraldTakedowns",
+  "saveAllyFromDeath",
+  "scuttleCrabKills",
+  "shortestTimeToAceFromFirstTakedown",
+  "skillshotsDodged",
+  "skillshotsHit",
+  "snowballsHit",
+  "soloBaronKills",
+  "SWARM_DefeatAatrox",
+  "SWARM_DefeatBriar",
+  "SWARM_DefeatMiniBosses",
+  "SWARM_EvolveWeapon",
+  "SWARM_Have3Passives",
+  "SWARM_KillEnemy",
+  "SWARM_PickupGold",
+  "SWARM_ReachLevel50",
+  "SWARM_Survive15Min",
+  "SWARM_WinWith5EvolvedWeapons",
+  "soloKills",
+  "stealthWardsPlaced",
+  "survivedSingleDigitHpCount",
+  "survivedThreeImmobilizesInFight",
+  "takedownOnFirstTurret",
+  "takedowns",
+  "takedownsAfterGainingLevelAdvantage",
+  "takedownsBeforeJungleMinionSpawn",
+  "takedownsFirstXMinutes",
+  "takedownsInAlcove",
+  "takedownsInEnemyFountain",
+  "teamBaronKills",
+  "teamDamagePercentage",
+  "teamElderDragonKills",
+  "teamRiftHeraldKills",
+  "tookLargeDamageSurvived",
+  "turretPlatesTaken",
+  "turretsTakenWithRiftHerald",
+  "turretTakedowns",
+  "twentyMinionsIn3SecondsCount",
+  "twoWardsOneSweeperCount",
+  "unseenRecalls",
+  "visionScorePerMinute",
+  "wardsGuarded",
+  "wardTakedowns",
+  "wardTakedownsBefore20M",
+] as const;
+
+const MATCH_STATS_FIELDS = [
+  ...PARTICIPANT_STATS_FIELDS,
+  ...CHALLENGES_STATS_FIELDS,
+  ...INFO_STATS_FIELDS,
+] as const;
 
 type ChampionData = {
   id: string; // PascalCase ID, e.g., "MissFortune"
@@ -14,15 +220,11 @@ type ChampionData = {
 export interface Stats {
   aggregate: MatchStats;
   average: AverageStats;
+  min: MatchStats;
+  max: MatchStats;
 }
 
-export interface MatchStats {
-  kills: number;
-  deaths: number;
-  assists: number;
-  games: number;
-  //etc
-}
+export type MatchStats = Record<(typeof MATCH_STATS_FIELDS)[number], number>;
 
 export interface AverageStats {
   perDeath: MatchStats;
@@ -59,6 +261,8 @@ export function createStats(): Stats {
   return {
     aggregate: createMatchStats(),
     average: createAverageStats(),
+    min: createMatchStats(),
+    max: createMatchStats(),
   };
 }
 
@@ -72,35 +276,78 @@ export function createAverageStats(): AverageStats {
 
 /** Creates an empty MatchStats object */
 export function createMatchStats(): MatchStats {
-  return {
-    kills: 0,
-    deaths: 0,
-    assists: 0,
-    games: 0,
-  };
+  const stats = {} as MatchStats;
+  for (const key of MATCH_STATS_FIELDS) {
+    stats[key] = 0;
+  }
+  return stats;
+}
+
+export function parseMatchStats(
+  match: MatchDto,
+  participant: ParticipantDto,
+): MatchStats {
+  const stats = {} as MatchStats;
+  for (const key of PARTICIPANT_STATS_FIELDS) {
+    stats[key] = (participant[key as keyof ParticipantDto] ?? 0) as number;
+  }
+  for (const key of INFO_STATS_FIELDS) {
+    stats[key] = (match.info[key as keyof InfoDto] ?? 0) as number;
+  }
+  for (const key of CHALLENGES_STATS_FIELDS) {
+    stats[key] = (participant.challenges[key as keyof ChallengesDto] ??
+      0) as number;
+  }
+  stats.games = 1;
+  return stats;
 }
 
 export function updateMatchStats(
   stats: MatchStats,
   delta: Partial<MatchStats>,
 ): void {
-  Object.entries(delta).forEach(([key, value]) => {
-    const k = key as keyof MatchStats;
-    stats[k] =
-      typeof value === "number"
-        ? (stats[k] as number) + (value as number)
-        : value;
-  });
+  for (const key of MATCH_STATS_FIELDS) {
+    const current = stats[key];
+    const change = delta[key];
+    if (typeof current === "number" && typeof change === "number") {
+      stats[key] = (current + change) as MatchStats[typeof key];
+    }
+  }
 }
 
-export function parseMatchStats(participant: ParticipantDto): MatchStats {
-  const stats: MatchStats = {
-    kills: participant.kills,
-    deaths: participant.deaths,
-    assists: participant.assists,
-    games: 1,
-  };
-  return stats;
+export function minMatchStats(
+  stats: MatchStats,
+  delta: Partial<MatchStats>,
+): void {
+  for (const key of MATCH_STATS_FIELDS) {
+    const current = stats[key];
+    const change = delta[key];
+    if (typeof current === "number" && typeof change === "number") {
+      // If both are 0, keep 0
+      if (current === 0 && change === 0) continue;
+      // If current is 0, take change; if change is 0, keep current; otherwise, take min
+      if (current === 0) {
+        stats[key] = change as MatchStats[typeof key];
+      } else if (change === 0) {
+        // keep current (already is)
+      } else {
+        stats[key] = Math.min(current, change) as MatchStats[typeof key];
+      }
+    }
+  }
+}
+
+export function maxMatchStats(
+  stats: MatchStats,
+  delta: Partial<MatchStats>,
+): void {
+  for (const key of MATCH_STATS_FIELDS) {
+    const current = stats[key];
+    const change = delta[key];
+    if (typeof current === "number" && typeof change === "number") {
+      stats[key] = Math.max(current, change) as MatchStats[typeof key];
+    }
+  }
 }
 
 export function averageMatchStats(
@@ -109,10 +356,13 @@ export function averageMatchStats(
 ): MatchStats {
   if (denominator === 0) return { ...stats };
   const result = { ...stats };
-  (Object.keys(stats) as (keyof MatchStats)[]).forEach((key) => {
+  for (const key of MATCH_STATS_FIELDS) {
     const value = stats[key];
-    result[key] = (value / denominator) as MatchStats[typeof key];
-  });
+    if (typeof value === "number") {
+      result[key] = (value / denominator) as MatchStats[typeof key];
+    }
+  }
+
   return result;
 }
 
@@ -295,15 +545,32 @@ export async function getChampionGames(
       ] ??= createMatchupEntry());
 
       // get the MatchStats for the given match for both players in the matchup
-      const playerStats: MatchStats = parseMatchStats(playerInfo);
-      const opponentStats: MatchStats = parseMatchStats(opponentInfo);
+      const playerStats: MatchStats = parseMatchStats(matchInfo, playerInfo);
+      const opponentStats: MatchStats = parseMatchStats(
+        matchInfo,
+        opponentInfo,
+      );
 
-      // update stats
+      // update aggregate stats
       updateMatchStats(outcome.stats.aggregate, playerStats);
       updateMatchStats(champion.stats.aggregate, playerStats);
       updateMatchStats(position.stats.aggregate, playerStats);
       updateMatchStats(matchup.player.aggregate, playerStats);
       updateMatchStats(matchup.opponent.aggregate, opponentStats);
+
+      minMatchStats(outcome.stats.min, playerStats);
+      minMatchStats(champion.stats.min, playerStats);
+      minMatchStats(position.stats.min, playerStats);
+      minMatchStats(matchup.player.min, playerStats);
+      minMatchStats(matchup.opponent.min, opponentStats);
+
+      maxMatchStats(outcome.stats.max, playerStats);
+      maxMatchStats(champion.stats.max, playerStats);
+      maxMatchStats(position.stats.max, playerStats);
+      maxMatchStats(matchup.player.max, playerStats);
+      maxMatchStats(matchup.opponent.max, opponentStats);
+
+      //
     } catch (error) {
       console.warn(error);
     }

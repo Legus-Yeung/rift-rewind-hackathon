@@ -46,7 +46,7 @@ export default async function SummonerPage({
     }
 
     // Parse the final JSON once fully received
-    const summoner: SummonerEntry = JSON.parse(result);
+    const summoner: SummonerEntry = JSON.parse(result) as SummonerEntry;
 
     // Fetch base account info
     const accountData: AccountDto = await apiRequest<AccountDto>(

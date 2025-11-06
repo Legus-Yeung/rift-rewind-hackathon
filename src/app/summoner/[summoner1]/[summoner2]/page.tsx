@@ -1,19 +1,10 @@
-import Image from "next/image";
-import GeneralPieChart from "~/app/_components/generalPieChart";
 import ErrorFallback from "~/app/_components/errorFallback";
 import {
-  getChampionGames,
-  getBestMatchupPerPosition,
   parseSummoner,
-  getBestMatch,
-  type ChampionEntry,
-  getTotalGames,
-  getMostPlayedChampions,
-  getChampionInGameName,
+  type SummonerEntry,
 } from "~/lib/summoner/summoner-utils";
 
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
 
 import { baseUrl } from "~/lib/api/url-utils";
 import { apiRequest } from "~/lib/api/request-utils";
@@ -36,35 +27,32 @@ export default async function SummonerSharePage({
       ),
     );
 
-    const matchHistories: string[][] = await Promise.all(
-      accountData.map((account) =>
-        apiRequest<string[]>(
-          `${baseUrl}/api/riot?action=match-history&puuid=${account.puuid}&searchParams=${new URLSearchParams()}`,
-        ),
-      ),
-    );
+    const summonerData: SummonerEntry[] = [];
 
-    const results = await Promise.all(
-      accountData.map((account, i) =>
-        Promise.all([
-          getChampionGames(account.puuid, matchHistories[i] ?? []),
-          getBestMatch(account.puuid, matchHistories[i] ?? []),
-        ]),
-      ),
-    );
+    for (let i = 0; i < 2; i++) {
+      const response = await fetch(
+        `${baseUrl}/api/summoner?gameName=${accountData[i]?.gameName}&tagLine=${accountData[i]?.tagLine}`,
+        {
+          method: "POST",
+        },
+      );
 
-    const champions: ChampionEntry[][] = results.map(([champs]) => champs);
-    const bestMatches: MatchDto[] = results.map(([, match]) => match);
+      if (!response.body) throw new Error("No response body");
 
-    const insights = champions.map((champs) => {
-      const top3 = getMostPlayedChampions(champs, 3);
-      const bestMatchups = getBestMatchupPerPosition(champs);
-      const championGames = champs.map((value) => ({
-        name: value.championKey.champion,
-        games: getTotalGames(value),
-      }));
-      return { top3, bestMatchups, championGames };
-    });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let result = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+        console.log("Received chunk:", decoder.decode(value));
+      }
+
+      // Parse the final JSON once fully received
+      summonerData[i] = JSON.parse(result) as SummonerEntry;
+    }
 
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#2e026d] to-[#15162c] px-6 py-10 text-white">
@@ -96,115 +84,6 @@ export default async function SummonerSharePage({
                     <span className="font-semibold">PUUID:</span>{" "}
                     {account.puuid}
                   </p>
-                </div>
-
-                <div className="w-full rounded-2xl bg-white/10 p-4 shadow-md">
-                  <h3 className="mb-3 text-center text-xl font-semibold text-purple-200">
-                    Champion Distribution
-                  </h3>
-                  <GeneralPieChart
-                    data={insights[i]?.championGames ?? []}
-                    title="Champion Distribution"
-                    nameKey="name"
-                    dataKey="games"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Best Matchups Section */}
-          <div className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-2">
-            {insights.map((insight, idx) => (
-              <div
-                key={idx}
-                className="rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md"
-              >
-                <h2 className="mb-4 text-center text-2xl font-semibold text-purple-200">
-                  {`Best Matchups — Summoner ${idx + 1}`}
-                </h2>
-
-                <div className="flex flex-col gap-4">
-                  {insight.bestMatchups.map(async (entry, i) => {
-                    const player = entry.playerStats;
-                    const opponent = entry.opponentStats;
-                    const playerKDA = (
-                      (player.kills + player.assists) /
-                      Math.max(1, player.deaths)
-                    ).toFixed(2);
-                    const opponentKDA = (
-                      (opponent.kills + opponent.assists) /
-                      Math.max(1, opponent.deaths)
-                    ).toFixed(2);
-
-                    const playerIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.playerChampion}.png`;
-                    const opponentIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.opponentChampion}.png`;
-
-                    let playerChampionName: string;
-                    let opponentChampionName: string;
-
-                    try {
-                      playerChampionName =
-                        (await getChampionInGameName(
-                          entry.matchupKey.playerChampion,
-                        )) ?? entry.matchupKey.playerChampion;
-                      opponentChampionName =
-                        (await getChampionInGameName(
-                          entry.matchupKey.opponentChampion,
-                        )) ?? entry.matchupKey.opponentChampion;
-                    } catch (error) {
-                      console.warn(error);
-                      playerChampionName = entry.matchupKey.playerChampion;
-                      opponentChampionName = entry.matchupKey.opponentChampion;
-                    }
-
-                    return (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between rounded-xl bg-gray-800/70 p-4 shadow transition hover:bg-gray-700/80"
-                      >
-                        <div className="flex w-24 flex-col items-center">
-                          <Image
-                            src={playerIcon}
-                            alt={playerChampionName}
-                            width={56}
-                            height={56}
-                            className="rounded-full border-2 border-blue-400"
-                          />
-                          <p className="mt-1 text-sm font-semibold text-blue-300">
-                            {playerChampionName}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col items-center text-sm">
-                          <p className="font-semibold text-green-400">
-                            Wins: {player.wins}
-                          </p>
-                          <p>KDA: {playerKDA}</p>
-                        </div>
-
-                        <div className="flex flex-col items-center text-sm">
-                          <p className="font-semibold text-red-400">
-                            Wins: {opponent.wins}
-                          </p>
-                          <p>KDA: {opponentKDA}</p>
-                        </div>
-
-                        <div className="flex w-24 flex-col items-center">
-                          <Image
-                            src={opponentIcon}
-                            alt={opponentChampionName}
-                            width={56}
-                            height={56}
-                            className="rounded-full border-2 border-red-400"
-                          />
-                          <p className="mt-1 text-sm font-semibold text-red-300">
-                            {opponentChampionName}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             ))}

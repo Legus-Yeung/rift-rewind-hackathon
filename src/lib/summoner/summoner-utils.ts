@@ -309,7 +309,7 @@ export function updateMatchStats(
     const current = stats[key];
     const change = delta[key];
     if (typeof current === "number" && typeof change === "number") {
-      stats[key] = (current + change) as MatchStats[typeof key];
+      stats[key] = current + change;
     }
   }
 }
@@ -326,11 +326,11 @@ export function minMatchStats(
       if (current === 0 && change === 0) continue;
       // If current is 0, take change; if change is 0, keep current; otherwise, take min
       if (current === 0) {
-        stats[key] = change as MatchStats[typeof key];
+        stats[key] = change;
       } else if (change === 0) {
         // keep current (already is)
       } else {
-        stats[key] = Math.min(current, change) as MatchStats[typeof key];
+        stats[key] = Math.min(current, change);
       }
     }
   }
@@ -344,7 +344,7 @@ export function maxMatchStats(
     const current = stats[key];
     const change = delta[key];
     if (typeof current === "number" && typeof change === "number") {
-      stats[key] = Math.max(current, change) as MatchStats[typeof key];
+      stats[key] = Math.max(current, change);
     }
   }
 }
@@ -358,7 +358,7 @@ export function averageMatchStats(
   for (const key of MATCH_STATS_FIELDS) {
     const value = stats[key];
     if (typeof value === "number") {
-      result[key] = (value / denominator) as MatchStats[typeof key];
+      result[key] = value / denominator;
     }
   }
 
@@ -577,34 +577,6 @@ export async function getChampionGames(
 
   averageAllStats(summoner);
   return summoner;
-}
-
-// best matchups for each champion position
-export function getBestMatchupsByChampion(
-  summoner: SummonerEntry,
-  champion: string,
-): void {
-  return;
-}
-
-// best matchup out of all the positions
-export function getBestMatchupByChampion(
-  summoner: SummonerEntry,
-  champion: string,
-): void {
-  return;
-}
-
-// best matchup for every position
-export function getBestMatchupPerPosition(summoner: SummonerEntry): void {
-  return;
-}
-
-export function getMostPlayedChampions(
-  summoner: SummonerEntry,
-  topX: number,
-): string[] {
-  return [];
 }
 
 /**

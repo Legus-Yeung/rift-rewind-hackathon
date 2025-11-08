@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const gameName = searchParams.get("gameName") ?? "unknown";
   const tagLine = searchParams.get("tagLine") ?? "unknown";
-  const save = searchParams.get("save") ?? false;
+  const save = searchParams.get("save") ?? true;
 
   const accountData: AccountDto = await apiRequest<AccountDto>(
     `${baseUrl}/api/riot?action=account&gameName=${gameName}&tagLine=${tagLine}`,
@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
   const matchHistory: string[] = await apiRequest<string[]>(
     `${baseUrl}/api/riot?action=match-history&puuid=${accountData.puuid}&searchParams=${new URLSearchParams()}`,
   );
+
+  console.log(`Analyzing ${matchHistory.length} matches...`);
 
   const encoder = new TextEncoder();
 

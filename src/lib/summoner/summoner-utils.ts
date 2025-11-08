@@ -5,8 +5,9 @@ import { apiRequest } from "../api/request-utils";
 import { baseUrl } from "../api/url-utils";
 import type { InfoDto } from "../riot/dtos/match/info.dto";
 import type { ChallengesDto } from "../riot/dtos/match/challenges.dto";
+import { match } from "assert";
 
-export const INFO_AGGREGATE_FIELDS = ["gameDuration", "games"] as const;
+export const INFO_AGGREGATE_FIELDS = ["gameDuration"] as const;
 
 export const INFO_AVERAGE_FIELDS = ["gameDuration"] as const;
 
@@ -34,7 +35,6 @@ export const PARTICIPANT_AGGREGATE_FIELDS = [
   "neutralMinionsKilled",
   "turretKills",
   "inhibitorKills",
-  "games",
 ] as const;
 
 export const PARTICIPANT_AVERAGE_FIELDS = [
@@ -231,7 +231,7 @@ export function parseAggregateStats(
     stats[key] = (participant.challenges[key as keyof ChallengesDto] ??
       0) as number;
   }
-  stats.games = 1;
+  stats["games"] = 1;
   return stats;
 }
 
@@ -309,11 +309,11 @@ export function updateMinStats(
       if (current === 0 && change === 0) continue;
       // If current is 0, take change; if change is 0, keep current; otherwise, take min
       if (current === 0) {
-        stats[key] = change;
+        stats[key] = change as MinMaxStats[typeof key];
       } else if (change === 0) {
         // keep current (already is)
       } else {
-        stats[key] = Math.min(current, change);
+        stats[key] = Math.min(current, change) as MinMaxStats[typeof key];
       }
     }
   }
@@ -343,11 +343,11 @@ export function calculateAverageStats(
   stats: AverageStats,
   denominator: number,
 ): AverageStats {
-  if (denominator === 0) return { ...stats };
+  if (!denominator || !Number.isFinite(denominator)) return { ...stats };
   const result = { ...stats };
   for (const key of AVERAGE_FIELDS) {
     const value = stats[key];
-    if (typeof value === "number") {
+    if (typeof value === "number" && Number.isFinite(value)) {
       result[key] = value / denominator;
     }
   }
@@ -366,7 +366,7 @@ function averageOutcomeStats(outcome: OutcomeEntry): void {
     averageStats(championEntry.stats);
     for (const position of Object.keys(
       championEntry.position,
-    ) as RiotPosition[]) {
+    ) as (keyof typeof RiotPosition)[]) {
       const positionEntry: PositionEntry | undefined =
         championEntry.position[position];
       if (!positionEntry) continue;
@@ -375,7 +375,8 @@ function averageOutcomeStats(outcome: OutcomeEntry): void {
         const matchupEntry: MatchupEntry | undefined =
           positionEntry.matchup[matchup];
         if (!matchupEntry) continue;
-        averageStats(positionEntry.stats);
+        averageStats(matchupEntry.player);
+        averageStats(matchupEntry.opponent);
       }
     }
   }
@@ -494,6 +495,7 @@ export async function getChampionGames(
   matchIds: string[],
 ): Promise<SummonerEntry> {
   const summoner: SummonerEntry = createSummonerEntry();
+  console.log(`Number of Matches: ${matchIds.length}`);
   for (const matchId of matchIds) {
     try {
       // get Riot dtos
@@ -506,19 +508,6 @@ export async function getChampionGames(
         opponentPuuid,
         matchInfo,
       );
-
-      // ready summoner heirarchy for entry
-      const outcome: OutcomeEntry =
-        summoner[playerInfo.win ? "wins" : "losses"];
-      const champion: ChampionEntry = (outcome.champion[
-        playerInfo.championName
-      ] ??= createChampionEntry());
-      const position: PositionEntry = (champion.position[
-        playerInfo.teamPosition
-      ] ??= createPositionEntry());
-      const matchup: MatchupEntry = (position.matchup[
-        opponentInfo.championName
-      ] ??= createMatchupEntry());
 
       // get the MatchStats for the given match for both players in the matchup
       const playerStats: Stats = {
@@ -534,6 +523,19 @@ export async function getChampionGames(
         min: parseMinMaxStats(matchInfo, opponentInfo),
         max: parseMinMaxStats(matchInfo, opponentInfo),
       };
+
+      // ready summoner heirarchy for entry
+      const outcome: OutcomeEntry =
+        summoner[playerInfo.win ? "wins" : "losses"];
+      const champion: ChampionEntry = (outcome.champion[
+        playerInfo.championName
+      ] ??= createChampionEntry());
+      const position: PositionEntry = (champion.position[
+        playerInfo.teamPosition
+      ] ??= createPositionEntry());
+      const matchup: MatchupEntry = (position.matchup[
+        opponentInfo.championName
+      ] ??= createMatchupEntry());
 
       // update aggregate stats
       updateStats(outcome.stats, playerStats);

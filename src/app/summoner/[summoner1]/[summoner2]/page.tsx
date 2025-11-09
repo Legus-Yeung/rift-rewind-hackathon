@@ -5,7 +5,7 @@ import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 
 import { baseUrl } from "~/lib/api/url-utils";
 import { apiRequest } from "~/lib/api/request-utils";
-import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
+import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export default async function SummonerSharePage({
   params,
@@ -25,7 +25,7 @@ export default async function SummonerSharePage({
       ),
     );
 
-    const summonerData: SummonerEntry[] = [];
+    const summonerData: MatchEntry[] = [];
 
     for (let i = 0; i < 2; i++) {
       const response = await fetch(
@@ -49,7 +49,7 @@ export default async function SummonerSharePage({
       }
 
       // Parse the final JSON once fully received
-      summonerData[i] = JSON.parse(result) as SummonerEntry;
+      summonerData[i] = JSON.parse(result) as MatchEntry;
     }
 
     return (

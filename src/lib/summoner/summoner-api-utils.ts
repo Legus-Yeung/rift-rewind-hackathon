@@ -7,7 +7,7 @@ import type { InfoDto } from "../riot/dtos/match/info.dto";
 import type { ChallengesDto } from "../riot/dtos/match/challenges.dto";
 
 import {
-  type Stats,
+  type MatchStats,
   type AggregateStats,
   type AverageStats,
   type MinMaxStats,
@@ -27,11 +27,17 @@ import {
   type ChampionEntry,
   type PositionEntry,
   type MatchupEntry,
-  type SummonerEntry,
+  type MatchEntry,
+  type ItemStats,
+  type TimelineEntry,
+  type TimelineOutcomeEntry,
+  type TimelineStats,
+  type TimelineChampionEntry,
 } from "./summoner-interface-utils";
+import type { TimelineDto } from "../riot/dtos/timeline/timeline.dto";
 
 /** Creates an empty Stats object */
-function createStats(): Stats {
+function createStats(): MatchStats {
   return {
     aggregate: createAggregateStats(),
     average: createAverageStats(),
@@ -177,7 +183,7 @@ function updateMaxStats(stats: MinMaxStats, delta: Partial<MinMaxStats>): void {
   }
 }
 
-function updateStats(stats: Stats, delta: Stats) {
+function updateStats(stats: MatchStats, delta: MatchStats) {
   updateAggregateStats(stats.aggregate, delta.aggregate);
   updateAverageStats(stats.average, delta.average);
   updateMinStats(stats.min, delta.min);
@@ -199,7 +205,7 @@ function calculateAverageStats(
   return result;
 }
 
-function averageStats(stats: Stats) {
+function averageStats(stats: MatchStats) {
   stats.average = calculateAverageStats(stats.average, stats.aggregate.games);
 }
 
@@ -227,13 +233,13 @@ function averageOutcomeStats(outcome: OutcomeEntry): void {
   }
 }
 
-function averageAllStats(summoner: SummonerEntry): void {
+function averageAllStats(summoner: MatchEntry): void {
   averageOutcomeStats(summoner.wins);
   averageOutcomeStats(summoner.losses);
 }
 
 /** Creates an empty SummonerEntry */
-function createSummonerEntry(): SummonerEntry {
+function createSummonerEntry(): MatchEntry {
   return {
     wins: createOutcomeEntry(),
     losses: createOutcomeEntry(),
@@ -335,11 +341,11 @@ export function parseSummoner(str: string): [string, string] {
  * @param - optional number of champions to return, sorted by most played (defaults to all champions)
  * @returns an array of objects with each champion's name and their respective number of games
  */
-export async function getChampionGames(
+export async function getMatchStats(
   puuid: string,
   matchIds: string[],
-): Promise<SummonerEntry> {
-  const summoner: SummonerEntry = createSummonerEntry();
+): Promise<MatchEntry> {
+  const summoner: MatchEntry = createSummonerEntry();
   console.log(`Number of Matches: ${matchIds.length}`);
   for (const matchId of matchIds) {
     try {
@@ -355,14 +361,14 @@ export async function getChampionGames(
       );
 
       // get the MatchStats for the given match for both players in the matchup
-      const playerStats: Stats = {
+      const playerStats: MatchStats = {
         aggregate: parseAggregateStats(matchInfo, playerInfo),
         average: parseAverageStats(matchInfo, playerInfo),
         min: parseMinMaxStats(matchInfo, playerInfo),
         max: parseMinMaxStats(matchInfo, playerInfo),
       };
 
-      const opponentStats: Stats = {
+      const opponentStats: MatchStats = {
         aggregate: parseAggregateStats(matchInfo, opponentInfo),
         average: parseAverageStats(matchInfo, opponentInfo),
         min: parseMinMaxStats(matchInfo, opponentInfo),
@@ -394,5 +400,104 @@ export async function getChampionGames(
   }
 
   averageAllStats(summoner);
+  return summoner;
+}
+
+function createTimelineEntry(): TimelineEntry {
+  return {
+    wins: createTimelineOutcomeEntry(),
+    losses: createTimelineOutcomeEntry(),
+  };
+}
+
+function createTimelineOutcomeEntry(): TimelineOutcomeEntry {
+  return {
+    stats: createTimelineStats(),
+    champion: {},
+  };
+}
+
+function createTimelineStats(): TimelineStats {
+  return {
+    items: {},
+  };
+}
+
+function createTimelineChampionEntry(): TimelineChampionEntry {
+  return {
+    stats: createTimelineStats(),
+  };
+}
+
+function createItemStats() {
+  return {
+    purchases: 0,
+    sold: 0,
+    destroyed: 0,
+  };
+}
+
+export function getParticipantId(puuid: string, timeline: TimelineDto): number {
+  const participants = timeline.metadata.participants;
+  const index = participants.indexOf(puuid);
+  if (index === -1) {
+    throw new Error(`PUUID ${puuid} not found in timeline metadata`);
+  }
+  return index + 1;
+}
+
+export function getItemCounts(
+  timeline: TimelineDto,
+  participantId: number,
+): Record<number, ItemStats> {
+  const itemCounts: Record<number, ItemStats> = {};
+  for (const frame of timeline.info.frames) {
+    for (const event of frame.events) {
+      if (event?.participantId !== participantId) continue;
+
+      const itemId = event.itemId;
+      if (!itemId) continue;
+
+      if (!itemCounts[itemId]) {
+        itemCounts[itemId] = createItemStats();
+      }
+
+      switch (event.type) {
+        case "ITEM_PURCHASED":
+          itemCounts[itemId].purchases += 1;
+          break;
+        case "ITEM_SOLD":
+          itemCounts[itemId].sold += 1;
+          break;
+        case "ITEM_DESTROYED":
+          itemCounts[itemId].destroyed += 1;
+          break;
+      }
+    }
+  }
+  return itemCounts;
+}
+
+export async function getTimelineStats(
+  puuid: string,
+  matchIds: string[],
+): Promise<TimelineEntry> {
+  const summoner: TimelineEntry = createTimelineEntry();
+  console.log(`Number of Matches: ${matchIds.length}`);
+  for (const matchId of matchIds) {
+    try {
+      const timelineInfo: TimelineDto = await apiRequest<TimelineDto>(
+        `${baseUrl}/api/riot?action=match-timeline&matchId=${matchId}`,
+      );
+      const participantId: number = getParticipantId(puuid, timelineInfo);
+
+      const itemStats: Record<number, ItemStats> = getItemCounts(
+        timelineInfo,
+        participantId,
+      );
+    } catch (error) {
+      console.warn(error);
+    }
+  }
   return summoner;
 }

@@ -133,34 +133,58 @@ export type AggregateStats = Record<(typeof AGGREGATE_FIELDS)[number], number>;
 export type AverageStats = Record<(typeof AVERAGE_FIELDS)[number], number>;
 
 export type MinMaxStats = Record<(typeof MIN_MAX_FIELDS)[number], number>;
-export interface Stats {
+export interface MatchStats {
   aggregate: AggregateStats;
   average: AverageStats;
   min: MinMaxStats;
   max: MinMaxStats;
 }
 
-export interface SummonerEntry {
+export interface MatchEntry {
   wins: OutcomeEntry;
   losses: OutcomeEntry;
 }
 
 export interface OutcomeEntry {
-  stats: Stats;
+  stats: MatchStats;
   champion: Record<string, ChampionEntry>;
 }
 
 export interface ChampionEntry {
-  stats: Stats;
+  stats: MatchStats;
   position: Partial<Record<RiotPosition, PositionEntry>>;
 }
 
 export interface PositionEntry {
-  stats: Stats;
+  stats: MatchStats;
   matchup: Record<string, MatchupEntry>;
 }
 
 export interface MatchupEntry {
-  player: Stats;
-  opponent: Stats;
+  player: MatchStats;
+  opponent: MatchStats;
+}
+
+export interface TimelineStats {
+  items: Record<number, ItemStats>;
+}
+
+export interface ItemStats {
+  purchases: number;
+  sold: number;
+  destroyed: number;
+}
+
+export interface TimelineEntry {
+  wins: TimelineOutcomeEntry;
+  losses: TimelineOutcomeEntry;
+}
+
+export interface TimelineOutcomeEntry {
+  stats: TimelineStats;
+  champion: Record<string, TimelineChampionEntry>;
+}
+
+export interface TimelineChampionEntry {
+  stats: TimelineStats;
 }

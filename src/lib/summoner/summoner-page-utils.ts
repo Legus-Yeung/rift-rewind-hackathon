@@ -1,10 +1,10 @@
-import type { SummonerEntry } from "./summoner-interface-utils";
+import type { MatchEntry } from "./summoner-interface-utils";
 
 export async function analyzeAccount(
   gameName: string,
   tagLine: string,
   save = true,
-): Promise<SummonerEntry> {
+): Promise<MatchEntry> {
   const params = new URLSearchParams({ gameName, tagLine, save: String(save) });
   const response = await fetch(`/api/analyze?${params.toString()}`, {
     method: "POST",
@@ -38,7 +38,7 @@ export async function analyzeAccount(
     }
 
     console.log("Success:", result.data);
-    return result.data as SummonerEntry;
+    return result.data as MatchEntry;
   } catch (err) {
     console.error("Failed to process stream:", err);
     throw err;

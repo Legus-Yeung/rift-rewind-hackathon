@@ -9,7 +9,7 @@ import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
 
 import { baseUrl } from "~/lib/api/url-utils";
 import { apiRequest } from "~/lib/api/request-utils";
-import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
+import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export default async function SummonerPage({
   params,
@@ -49,7 +49,7 @@ export default async function SummonerPage({
       throw new Error(res.error);
     }
 
-    const summoner: SummonerEntry = res.data as SummonerEntry;
+    const summoner: MatchEntry = res.data as MatchEntry;
 
     // Fetch base account info
     const accountData: AccountDto = await apiRequest<AccountDto>(

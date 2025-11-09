@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apiRequest } from "~/lib/api/request-utils";
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import { getChampionGames } from "~/lib/summoner/summoner-api-utils";
+import { getMatchStats } from "~/lib/summoner/summoner-api-utils";
 import fs from "fs";
 import path from "path";
-import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
+import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       }, 5000);
 
       try {
-        const summoner: SummonerEntry = await getChampionGames(
+        const summoner: MatchEntry = await getMatchStats(
           accountData.puuid,
           matchHistory ?? [],
         );

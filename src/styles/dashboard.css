@@ -93,7 +93,7 @@ All colors MUST be HSL.
   }
 }
 
-@layer base {
+/* @layer base {
   * {
     @apply border-border;
   }
@@ -101,4 +101,4 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
-}
+} */

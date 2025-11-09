@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const gameName = searchParams.get("gameName") ?? "unknown";
   const tagLine = searchParams.get("tagLine") ?? "unknown";
-  const save = searchParams.get("save") ?? true;
+  const save = searchParams.get("save") ?? false;
 
   const accountData: AccountDto = await apiRequest<AccountDto>(
     `${baseUrl}/api/riot?action=account&gameName=${gameName}&tagLine=${tagLine}`,

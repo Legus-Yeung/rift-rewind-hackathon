@@ -1,5 +1,8 @@
 import React from "react";
 import { Sword, Flame, Sparkles, Trophy } from "lucide-react";
+import Image from "next/image";
+
+const patch = "15.20.1";
 
 interface MultikillSectionProps {
   doubleKills: number;
@@ -26,28 +29,52 @@ export function MultikillSection({
     {
       label: "Double Kills",
       value: doubleKills,
-      icon: <Sword className="w-8 h-8" />,
+      icon: <Image
+        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/1036.png`}
+        alt="Double Kill"
+        width={48}
+        height={48}
+        className="rounded-md"
+      />,
       rarity: "common",
       description: "Two enemies eliminated in quick succession",
     },
     {
       label: "Triple Kills",
       value: tripleKills,
-      icon: <Sword className="w-8 h-8" />,
+      icon: <Image
+        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3134.png`}
+        alt="Triple Kill"
+        width={48}
+        height={48}
+        className="rounded-md"
+      />,
       rarity: "uncommon",
       description: "Three enemies eliminated in quick succession",
     },
     {
       label: "Quadra Kills",
       value: quadraKills,
-      icon: <Flame className="w-8 h-8" />,
+      icon: <Image
+        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3031.png`}
+        alt="Quadra Kill"
+        width={48}
+        height={48}
+        className="rounded-md"
+      />,
       rarity: "rare",
       description: "Four enemies eliminated in quick succession",
     },
     {
       label: "Penta Kills",
       value: pentaKills,
-      icon: <Trophy className="w-8 h-8" />,
+      icon: <Image
+        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3072.png`}
+        alt="Penta Kill"
+        width={48}
+        height={48}
+        className="rounded-md"
+      />,
       rarity: "legendary",
       description: "All five enemies eliminated in quick succession",
     },
@@ -99,7 +126,10 @@ export function MultikillSection({
         <div className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-primary" />
+              <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/3/38/Noxus_Crest_icon.png/revision/latest?cb=20161117055828"}
+                alt={"Noxus Axe"}
+                width={40}
+                height={40}/>
               <h2 className="text-3xl font-bold text-foreground uppercase tracking-wide">
                 Multikill Achievements
               </h2>

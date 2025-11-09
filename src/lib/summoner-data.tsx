@@ -53,7 +53,24 @@ type StatsData = {
       [key: string]: ChampionStats;
     };
   };
+  losses: {
+    stats: {
+      aggregate: {
+        kills: number;
+        deaths: number;
+        assists: number;
+        goldEarned: number;
+        totalDamageDealtToChampions: number;
+        games: number;
+        gameDuration: number;
+      };
+    };
+    champion: {
+      [key: string]: ChampionStats;
+    };
+  };
 };
+
 
 type ChampionStat = {
   name: string;
@@ -89,16 +106,23 @@ export function getTopChampions(data: StatsData): ChampionStat[] {
   return champions.sort((a, b) => b.games - a.games).slice(0, 3);
 }
 
-export function getBestMatchup(data: StatsData): Matchup | null {
+export function getBestMatchups(data: StatsData, limit: number = 3): Matchup[] {
   const matchups: Matchup[] = [];
   
+  // Collect wins for each matchup
   Object.entries(data.wins.champion || {}).forEach(([champName, champData]) => {
     Object.entries(champData.position || {}).forEach(([position, posData]) => {
       Object.entries(posData.matchup || {}).forEach(([opponent, matchupData]) => {
-        const playerGames = matchupData.player.aggregate.games;
-        const opponentGames = matchupData.opponent.aggregate.games;
-        const totalGames = playerGames;
-        const wins = playerGames;
+        const wins = matchupData.player.aggregate.games;
+        
+        // Get losses for the same matchup
+        let losses = 0;
+        const lossChampData = data.losses?.champion?.[champName];
+        if (lossChampData?.position?.[position]?.matchup?.[opponent]) {
+          losses = lossChampData.position[position].matchup[opponent].player.aggregate.games;
+        }
+        
+        const totalGames = wins + losses;
         
         if (totalGames >= 3) {
           matchups.push({
@@ -114,9 +138,7 @@ export function getBestMatchup(data: StatsData): Matchup | null {
     });
   });
 
-  return matchups.length > 0
-    ? matchups.sort((a, b) => b.winrate - a.winrate)[0] ?? null
-    : null;
+  return matchups.sort((a, b) => b.winrate - a.winrate).slice(0, limit);
 }
 
 export function getBestPosition(data: StatsData): PositionStat | null {

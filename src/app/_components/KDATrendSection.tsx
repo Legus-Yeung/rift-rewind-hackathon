@@ -109,7 +109,7 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
               <YAxis stroke="hsl(0, 5%, 60%)" style={{ fontSize: "12px" }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(0, 15%, 10%)",
+                  backgroundColor: "hsla(0, 0%, 100%, 1.00)",
                   border: "2px solid hsl(0, 70%, 45%)",
                   borderRadius: "4px",
                   color: "hsl(0, 5%, 95%)",

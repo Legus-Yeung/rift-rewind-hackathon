@@ -32,7 +32,7 @@ export default function NavBar() {
             Chat
           </Link>
           <Link
-            href="/summoner"
+            href="/summoner/gameName-tagLine/gameName-tagLine"
             className="hover:text-[hsl(40,45%,61%)] transition-colors duration-200"
           >
             Summoner

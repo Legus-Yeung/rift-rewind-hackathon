@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import stats from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
 import {
   getTopChampions,
-  getBestMatchup,
+  getBestMatchups,
   getBestPosition,
   getBestMatch,
   getTotalTimePlayed,
@@ -30,7 +30,7 @@ export default function Index() {
 
   // Derived stats
   const topChamps = getTopChampions(stats);
-  const bestMatchup = getBestMatchup(stats);
+  const bestMatchups = getBestMatchups(stats, 3);
   const bestPosition = getBestPosition(stats);
   const bestMatch = getBestMatch(stats);
   const totalTime = getTotalTimePlayed(stats);
@@ -87,8 +87,9 @@ export default function Index() {
         <ChampionsSection champions={topChamps} />
 
         <MatchupsSection
-          bestMatchup={bestMatchup}
+          bestMatchups={bestMatchups}
           bestPosition={bestPosition}
+          bestMatch={bestMatch}
         />
 
         <VisionControlSection
@@ -122,7 +123,7 @@ export default function Index() {
         <footer className="bg-card/50 border-primary/30 border-t-2 py-8">
           <div className="container mx-auto px-4 text-center">
             <p className="text-muted-foreground text-sm">
-              Summoner Wrapped • Season 2024 • Noxus Theme
+              Idk what to put here
             </p>
           </div>
         </footer>

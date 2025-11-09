@@ -27,7 +27,11 @@ const config = {
       },
       {
         protocol: "https",
-        hostname: "static.wikia.nocookie.net"
+        hostname: "static.wikia.nocookie.net",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.communitydragon.org",
       },
     ],
   },

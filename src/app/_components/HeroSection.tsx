@@ -25,7 +25,7 @@ export function HeroSection({
       style={{
         backgroundImage: `url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${topChampion}_0.jpg')`,
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundPosition: "",
       }}
     >
       {/* Dark gradient overlay */}

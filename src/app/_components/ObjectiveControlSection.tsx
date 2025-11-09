@@ -2,6 +2,7 @@ import React from "react";
 import { Crown, Flame, Shield, Target } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip,  } from "recharts";
 import type { PieLabelRenderProps } from "recharts";
+import Image from "next/image";
 
 interface ObjectiveControlSectionProps {
   baronTakedowns: number;
@@ -60,6 +61,15 @@ export function ObjectiveControlSection({
     },
   ];
 
+    const COLORS = [
+    "#FFD700", // gold
+    "#FF7F50", // coral
+    "#82CA9D", // mint
+    "#8884D8", // violet
+    "#00C49F", // teal
+    "#FFBB28", // yellow-orange
+  ];
+
   const pieData = objectiveData.map((obj) => ({
     name: obj.name,
     value: obj.value,
@@ -87,34 +97,32 @@ export function ObjectiveControlSection({
               Objective Distribution
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }: { name?: string; percent?: number }) => (
-                        <text fill="white" textAnchor="middle" dominantBaseline="central">
-                        {`${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
-                        </text>
-                    )}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"/>
+              <PieChart width={400} height={300}>
+      <Pie
+        data={pieData}
+        cx="50%"
+        cy="50%"
+        labelLine={false}
+        label={({ name, percent }) =>
+          `${name}: ${(percent! * 100).toFixed(0)}%`
+        }
+        outerRadius={100}
+        dataKey="value"
+      >
+        {pieData.map((_, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
 
-                    {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={objectiveData[index]?.color ?? "#8884d8"}/>
-                    ))}
-
-                <Tooltip
-                    contentStyle={{
-                    backgroundColor: "hsl(0, 15%, 10%)",
-                    border: "2px solid hsl(0, 70%, 45%)",
-                    borderRadius: "4px",
-                    color: "hsl(0, 5%, 95%)",
-                    }}
-                />
-                </PieChart>
+      <Tooltip
+        contentStyle={{
+          backgroundColor: "rgba(255, 255, 255, 0.9)",
+          border: "1px solid hsl(40,45%,61%)",
+          borderRadius: "6px",
+          color: "white",
+        }}
+      />
+    </PieChart>
             </ResponsiveContainer>
             <div className="text-center mt-4">
               <p className="text-sm text-muted-foreground uppercase tracking-wider">
@@ -133,7 +141,10 @@ export function ObjectiveControlSection({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-[hsl(270,60%,50%)]" />
+                    <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/0/04/Clash_BaronNashorLogo_%28Base%29.png/revision/latest?cb=20181226235434"}
+                      alt={"Baron Nashor"}
+                      width={40}
+                      height={40}/>
                     <span className="text-foreground font-semibold">Baron Nashor</span>
                   </div>
                   <span className="text-2xl font-bold text-primary">
@@ -157,7 +168,10 @@ export function ObjectiveControlSection({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-[hsl(40,45%,61%)]" />
+                    <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/1/1c/Clash_RiftHeraldLogo_%28Base%29.png/revision/latest?cb=20181226235617"}
+                      alt={"Rift Herald"}
+                      width={40}
+                      height={40}/>
                     <span className="text-foreground font-semibold">Rift Herald</span>
                   </div>
                   <span className="text-2xl font-bold text-primary">
@@ -184,12 +198,20 @@ export function ObjectiveControlSection({
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <Flame className="w-6 h-6 text-noxus-red mx-auto mb-2" />
+                    <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/9/99/Clash_DragonLogo_%28Base%29.png/revision/latest?cb=20181226235501"}
+                      alt={"Dragon"}
+                      width={40}
+                      height={40}
+                      className="mx-auto mb-2"/>
                     <p className="text-2xl font-bold text-noxus-red">{dragonTakedowns}</p>
                     <p className="text-xs text-muted-foreground">Dragons</p>
                   </div>
                   <div className="text-center">
-                    <Target className="w-6 h-6 text-[hsl(180,50%,50%)] mx-auto mb-2" />
+                    <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/d/d3/Clash_ScuttleCrabLogo_%28Base%29.png/revision/latest?cb=20181226235622"}
+                      alt={"Scuttle Crab"}
+                      width={40}
+                      height={40}
+                      className="mx-auto mb-2"/>
                     <p className="text-2xl font-bold text-[hsl(180,50%,50%)]">{scuttleCrabKills}</p>
                     <p className="text-xs text-muted-foreground">Scuttles</p>
                   </div>
@@ -212,7 +234,6 @@ export function ObjectiveControlSection({
                 }}
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <Icon className="w-6 h-6" style={{ color: obj.color }} />
                   <h4 className="text-sm font-bold text-foreground uppercase">{obj.name}</h4>
                 </div>
 

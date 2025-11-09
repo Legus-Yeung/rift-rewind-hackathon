@@ -1,12 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apiRequest } from "~/lib/api/request-utils";
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import {
-  getChampionGames,
-  type SummonerEntry,
-} from "~/lib/summoner/summoner-utils";
+import { getChampionGames } from "~/lib/summoner/summoner-api-utils";
 import fs from "fs";
 import path from "path";
+import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export async function POST(request: NextRequest) {
   const { searchParams } = new URL(request.url);

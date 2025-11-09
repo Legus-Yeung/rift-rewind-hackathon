@@ -5,182 +5,33 @@ import { apiRequest } from "../api/request-utils";
 import { baseUrl } from "../api/url-utils";
 import type { InfoDto } from "../riot/dtos/match/info.dto";
 import type { ChallengesDto } from "../riot/dtos/match/challenges.dto";
-import { match } from "assert";
 
-export const INFO_AGGREGATE_FIELDS = ["gameDuration"] as const;
-
-export const INFO_AVERAGE_FIELDS = ["gameDuration"] as const;
-
-export const INFO_MIN_MAX_FIELDS = ["gameDuration"] as const;
-
-export const PARTICIPANT_AGGREGATE_FIELDS = [
-  "kills",
-  "deaths",
-  "assists",
-  "doubleKills",
-  "tripleKills",
-  "quadraKills",
-  "pentaKills",
-  "totalDamageDealt",
-  "totalDamageDealtToChampions",
-  "totalDamageTaken",
-  "damageDealtToObjectives",
-  "damageDealtToTurrets",
-  "visionScore",
-  "wardsPlaced",
-  "wardsKilled",
-  "detectorWardsPlaced",
-  "goldEarned",
-  "totalMinionsKilled",
-  "neutralMinionsKilled",
-  "turretKills",
-  "inhibitorKills",
-] as const;
-
-export const PARTICIPANT_AVERAGE_FIELDS = [
-  "kills",
-  "deaths",
-  "assists",
-
-  "totalDamageDealt",
-  "totalDamageDealtToChampions",
-
-  "damageDealtToObjectives",
-  "damageDealtToTurrets",
-
-  "visionScore",
-  "wardsPlaced",
-  "wardsKilled",
-  "detectorWardsPlaced",
-
-  "goldEarned",
-
-  "totalMinionsKilled",
-  "neutralMinionsKilled",
-  "neutralMinionsKilledEnemyJungle",
-  "neutralMinionsKilledTeamJungle",
-] as const;
-
-export const PARTICIPANT_MIN_MAX_FIELDS = [
-  "largestKillingSpree",
-  "largestMultiKill",
-  "longestTimeSpentLiving",
-  "totalTimeSpentDead",
-  "totalDamageDealtToChampions",
-  "totalDamageTaken",
-  "goldEarned",
-  "visionScore",
-  "totalMinionsKilled",
-] as const;
-
-export const CHALLENGES_AGGREGATE_FIELDS = [
-  "baronTakedowns",
-  "dragonTakedowns",
-  "riftHeraldTakedowns",
-  "teamBaronKills",
-  "teamRiftHeraldKills",
-  "scuttleCrabKills",
-  "takedownsFirst25Minutes",
-  "takedownsInEnemyFountain",
-  "abilityUses",
-  "soloKills",
-  "perfectGame",
-  "teleportTakedowns",
-  "bountyGold",
-  "soloBaronKills",
-] as const;
-
-export const CHALLENGES_AVERAGE_FIELDS = [
-  "goldPerMinute",
-  "damagePerMinute",
-  "visionScorePerMinute",
-  "kda",
-  "killParticipation",
-  "teamDamagePercentage",
-  "laningPhaseGoldExpAdvantage",
-  "earlyLaningPhaseGoldExpAdvantage",
-  "damageTakenOnTeamPercentage",
-  "gameLength",
-] as const;
-
-export const CHALLENGES_MIN_MAX_FIELDS = [
-  "maxCsAdvantageOnLaneOpponent",
-  "maxLevelLeadLaneOpponent",
-  "highestChampionDamage",
-  "highestCrowdControlScore",
-  "highestWardKills",
-  "earliestDragonTakedown",
-  "earliestBaron",
-  "fastestLegendary",
-  "maxKillDeficit",
-  "shortestTimeToAceFromFirstTakedown",
-] as const;
-
-const AGGREGATE_FIELDS = [
-  ...PARTICIPANT_AGGREGATE_FIELDS,
-  ...CHALLENGES_AGGREGATE_FIELDS,
-  ...INFO_AGGREGATE_FIELDS,
-  "games",
-] as const;
-
-const AVERAGE_FIELDS = [
-  ...PARTICIPANT_AVERAGE_FIELDS,
-  ...CHALLENGES_AVERAGE_FIELDS,
-  ...INFO_AVERAGE_FIELDS,
-] as const;
-
-const MIN_MAX_FIELDS = [
-  ...PARTICIPANT_MIN_MAX_FIELDS,
-  ...CHALLENGES_MIN_MAX_FIELDS,
-  ...INFO_MIN_MAX_FIELDS,
-] as const;
-
-type ChampionData = {
-  id: string; // PascalCase ID, e.g., "MissFortune"
-  key: string; // Numeric ID, e.g., "21"
-  name: string; // Full in-game name, e.g., "Miss Fortune"
-  title: string;
-};
-
-export type AggregateStats = Record<(typeof AGGREGATE_FIELDS)[number], number>;
-
-export type AverageStats = Record<(typeof AVERAGE_FIELDS)[number], number>;
-
-export type MinMaxStats = Record<(typeof MIN_MAX_FIELDS)[number], number>;
-export interface Stats {
-  aggregate: AggregateStats;
-  average: AverageStats;
-  min: MinMaxStats;
-  max: MinMaxStats;
-}
-
-export interface SummonerEntry {
-  wins: OutcomeEntry;
-  losses: OutcomeEntry;
-}
-
-export interface OutcomeEntry {
-  stats: Stats;
-  champion: Record<string, ChampionEntry>;
-}
-
-export interface ChampionEntry {
-  stats: Stats;
-  position: Partial<Record<RiotPosition, PositionEntry>>;
-}
-
-export interface PositionEntry {
-  stats: Stats;
-  matchup: Record<string, MatchupEntry>;
-}
-
-export interface MatchupEntry {
-  player: Stats;
-  opponent: Stats;
-}
+import {
+  type Stats,
+  type AggregateStats,
+  type AverageStats,
+  type MinMaxStats,
+  AGGREGATE_FIELDS,
+  AVERAGE_FIELDS,
+  MIN_MAX_FIELDS,
+  PARTICIPANT_AGGREGATE_FIELDS,
+  INFO_AGGREGATE_FIELDS,
+  CHALLENGES_AGGREGATE_FIELDS,
+  PARTICIPANT_AVERAGE_FIELDS,
+  INFO_AVERAGE_FIELDS,
+  CHALLENGES_AVERAGE_FIELDS,
+  PARTICIPANT_MIN_MAX_FIELDS,
+  INFO_MIN_MAX_FIELDS,
+  CHALLENGES_MIN_MAX_FIELDS,
+  type OutcomeEntry,
+  type ChampionEntry,
+  type PositionEntry,
+  type MatchupEntry,
+  type SummonerEntry,
+} from "./summoner-interface-utils";
 
 /** Creates an empty Stats object */
-export function createStats(): Stats {
+function createStats(): Stats {
   return {
     aggregate: createAggregateStats(),
     average: createAverageStats(),
@@ -190,7 +41,7 @@ export function createStats(): Stats {
 }
 
 /** Creates an empty MatchStats object */
-export function createAggregateStats(): AggregateStats {
+function createAggregateStats(): AggregateStats {
   const stats = {} as AggregateStats;
   for (const key of AGGREGATE_FIELDS) {
     stats[key] = 0;
@@ -199,7 +50,7 @@ export function createAggregateStats(): AggregateStats {
 }
 
 /** Creates an empty MatchStats object */
-export function createAverageStats(): AverageStats {
+function createAverageStats(): AverageStats {
   const stats = {} as AverageStats;
   for (const key of AVERAGE_FIELDS) {
     stats[key] = 0;
@@ -208,7 +59,7 @@ export function createAverageStats(): AverageStats {
 }
 
 /** Creates an empty MatchStats object */
-export function createMinMaxStats(): MinMaxStats {
+function createMinMaxStats(): MinMaxStats {
   const stats = {} as MinMaxStats;
   for (const key of MIN_MAX_FIELDS) {
     stats[key] = 0;
@@ -216,7 +67,7 @@ export function createMinMaxStats(): MinMaxStats {
   return stats;
 }
 
-export function parseAggregateStats(
+function parseAggregateStats(
   match: MatchDto,
   participant: ParticipantDto,
 ): AggregateStats {
@@ -235,7 +86,7 @@ export function parseAggregateStats(
   return stats;
 }
 
-export function parseAverageStats(
+function parseAverageStats(
   match: MatchDto,
   participant: ParticipantDto,
 ): AverageStats {
@@ -253,7 +104,7 @@ export function parseAverageStats(
   return stats;
 }
 
-export function parseMinMaxStats(
+function parseMinMaxStats(
   match: MatchDto,
   participant: ParticipantDto,
 ): MinMaxStats {
@@ -271,7 +122,7 @@ export function parseMinMaxStats(
   return stats;
 }
 
-export function updateAggregateStats(
+function updateAggregateStats(
   stats: AggregateStats,
   delta: Partial<AggregateStats>,
 ): void {
@@ -284,7 +135,7 @@ export function updateAggregateStats(
   }
 }
 
-export function updateAverageStats(
+function updateAverageStats(
   stats: AverageStats,
   delta: Partial<AverageStats>,
 ): void {
@@ -297,10 +148,7 @@ export function updateAverageStats(
   }
 }
 
-export function updateMinStats(
-  stats: MinMaxStats,
-  delta: Partial<MinMaxStats>,
-): void {
+function updateMinStats(stats: MinMaxStats, delta: Partial<MinMaxStats>): void {
   for (const key of MIN_MAX_FIELDS) {
     const current = stats[key];
     const change = delta[key];
@@ -319,10 +167,7 @@ export function updateMinStats(
   }
 }
 
-export function updateMaxStats(
-  stats: MinMaxStats,
-  delta: Partial<MinMaxStats>,
-): void {
+function updateMaxStats(stats: MinMaxStats, delta: Partial<MinMaxStats>): void {
   for (const key of MIN_MAX_FIELDS) {
     const current = stats[key];
     const change = delta[key];
@@ -339,7 +184,7 @@ function updateStats(stats: Stats, delta: Stats) {
   updateMaxStats(stats.max, delta.max);
 }
 
-export function calculateAverageStats(
+function calculateAverageStats(
   stats: AverageStats,
   denominator: number,
 ): AverageStats {
@@ -388,7 +233,7 @@ function averageAllStats(summoner: SummonerEntry): void {
 }
 
 /** Creates an empty SummonerEntry */
-export function createSummonerEntry(): SummonerEntry {
+function createSummonerEntry(): SummonerEntry {
   return {
     wins: createOutcomeEntry(),
     losses: createOutcomeEntry(),
@@ -396,7 +241,7 @@ export function createSummonerEntry(): SummonerEntry {
 }
 
 /** Creates an empty OutcomeEntry */
-export function createOutcomeEntry(): OutcomeEntry {
+function createOutcomeEntry(): OutcomeEntry {
   return {
     stats: createStats(),
     champion: {},
@@ -404,12 +249,12 @@ export function createOutcomeEntry(): OutcomeEntry {
 }
 
 /** Creates an empty ChampionEntry */
-export function createChampionEntry(): ChampionEntry {
+function createChampionEntry(): ChampionEntry {
   return { stats: createStats(), position: {} };
 }
 
 /** Creates an empty PositionEntry */
-export function createPositionEntry(): PositionEntry {
+function createPositionEntry(): PositionEntry {
   return {
     stats: createStats(),
     matchup: {},
@@ -417,7 +262,7 @@ export function createPositionEntry(): PositionEntry {
 }
 
 /** Creates an empty MatchupEntry */
-export function createMatchupEntry(): MatchupEntry {
+function createMatchupEntry(): MatchupEntry {
   return {
     player: createStats(),
     opponent: createStats(),
@@ -550,36 +395,4 @@ export async function getChampionGames(
 
   averageAllStats(summoner);
   return summoner;
-}
-
-/**
- * Given a championName (PascalCase like "MissFortune"),
- * returns the official in-game name (e.g., "Miss Fortune").
- *
- * @param championName the unique PascalCase identifier for the champion
- * @returns the official in-game name, or the gameName if there is no in-game
- * @throws an {@link Error} when champion data cannot be fetched
- */
-export async function getChampionInGameName(
-  championName: string,
-): Promise<string | null> {
-  try {
-    // Fetch Data Dragon champion list
-    const res = await fetch(
-      "https://ddragon.leagueoflegends.com/cdn/14.20.1/data/en_US/champion.json",
-    );
-    if (!res.ok) throw new Error("Failed to fetch champion data");
-
-    const data: { data: Record<string, ChampionData> } = (await res.json()) as {
-      data: Record<string, ChampionData>;
-    };
-
-    const champion: ChampionData | undefined = data.data[championName];
-    if (!champion) return null;
-
-    return champion.name;
-  } catch (err) {
-    console.error("Error fetching champion in-game name:", err);
-    return null;
-  }
 }

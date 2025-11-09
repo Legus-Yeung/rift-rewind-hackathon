@@ -1,13 +1,11 @@
 import ErrorFallback from "~/app/_components/errorFallback";
-import {
-  parseSummoner,
-  type SummonerEntry,
-} from "~/lib/summoner/summoner-utils";
+import { parseSummoner } from "~/lib/summoner/summoner-api-utils";
 
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 
 import { baseUrl } from "~/lib/api/url-utils";
 import { apiRequest } from "~/lib/api/request-utils";
+import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export default async function SummonerSharePage({
   params,

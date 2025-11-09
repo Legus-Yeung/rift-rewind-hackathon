@@ -2,17 +2,14 @@ import Image from "next/image";
 import GeneralPieChart from "~/app/_components/generalPieChart";
 import ErrorFallback from "~/app/_components/errorFallback";
 
-import {
-  getChampionGames,
-  parseSummoner,
-  type SummonerEntry,
-} from "~/lib/summoner/summoner-utils";
+import { parseSummoner } from "~/lib/summoner/summoner-api-utils";
 
 import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
 import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
 
 import { baseUrl } from "~/lib/api/url-utils";
 import { apiRequest } from "~/lib/api/request-utils";
+import type { SummonerEntry } from "~/lib/summoner/summoner-interface-utils";
 
 export default async function SummonerPage({
   params,
@@ -46,7 +43,13 @@ export default async function SummonerPage({
     }
 
     // Parse the final JSON once fully received
-    const summoner: SummonerEntry = JSON.parse(result) as SummonerEntry;
+    const res = JSON.parse(result);
+
+    if (!res.success) {
+      throw new Error(res.error);
+    }
+
+    const summoner: SummonerEntry = res.data as SummonerEntry;
 
     // Fetch base account info
     const accountData: AccountDto = await apiRequest<AccountDto>(

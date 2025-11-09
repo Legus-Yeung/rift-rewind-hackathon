@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Noxus Theme - Crimson Conquest */
+    --background: 0 10% 7%;
+    --foreground: 0 5% 95%;
+
+    --card: 0 15% 10%;
+    --card-foreground: 0 5% 95%;
+
+    --popover: 0 15% 10%;
+    --popover-foreground: 0 5% 95%;
+
+    /* Noxus Crimson - Deep blood red */
+    --primary: 0 70% 45%;
+    --primary-foreground: 0 5% 95%;
+
+    /* Dark metallic bronze */
+    --secondary: 25 35% 25%;
+    --secondary-foreground: 0 5% 95%;
+
+    /* Muted dark red-gray */
+    --muted: 0 15% 15%;
+    --muted-foreground: 0 5% 60%;
+
+    /* Accent crimson glow */
+    --accent: 0 80% 50%;
+    --accent-foreground: 0 5% 95%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 5% 95%;
+
+    --border: 0 20% 20%;
+    --input: 0 20% 20%;
+    --ring: 0 70% 45%;
+
+    --radius: 0.5rem;
+
+    /* Noxus-specific tokens */
+    --noxus-red: 0 70% 45%;
+    --noxus-red-dark: 0 60% 35%;
+    --noxus-red-light: 0 75% 55%;
+    --noxus-bronze: 25 35% 45%;
+    --noxus-gold: 40 45% 61%;
+    --noxus-black: 0 10% 7%;
+    --noxus-gray: 0 5% 25%;
+
+    --sidebar-background: 0 10% 7%;
+    --sidebar-foreground: 0 5% 95%;
+    --sidebar-primary: 0 70% 45%;
+    --sidebar-primary-foreground: 0 5% 95%;
+    --sidebar-accent: 0 15% 15%;
+    --sidebar-accent-foreground: 0 5% 95%;
+    --sidebar-border: 0 20% 20%;
+    --sidebar-ring: 0 70% 45%;
+  }
+
+  .dark {
+    --background: 0 10% 7%;
+    --foreground: 0 5% 95%;
+    --card: 0 15% 10%;
+    --card-foreground: 0 5% 95%;
+    --popover: 0 15% 10%;
+    --popover-foreground: 0 5% 95%;
+    --primary: 0 70% 45%;
+    --primary-foreground: 0 5% 95%;
+    --secondary: 25 35% 25%;
+    --secondary-foreground: 0 5% 95%;
+    --muted: 0 15% 15%;
+    --muted-foreground: 0 5% 60%;
+    --accent: 0 80% 50%;
+    --accent-foreground: 0 5% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 5% 95%;
+    --border: 0 20% 20%;
+    --input: 0 20% 20%;
+    --ring: 0 70% 45%;
+    --sidebar-background: 0 10% 7%;
+    --sidebar-foreground: 0 5% 95%;
+    --sidebar-primary: 0 70% 45%;
+    --sidebar-primary-foreground: 0 5% 95%;
+    --sidebar-accent: 0 15% 15%;
+    --sidebar-accent-foreground: 0 5% 95%;
+    --sidebar-border: 0 20% 20%;
+    --sidebar-ring: 0 70% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

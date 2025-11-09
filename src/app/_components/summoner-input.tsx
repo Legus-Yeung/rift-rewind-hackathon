@@ -58,7 +58,7 @@ export default function SummonerInput() {
           />
         </label>
         <button
-          className="rounded bg-purple-500 px-4 py-1 text-white hover:bg-blue-400"
+          className="rounded bg-[hsl(40,45%,61%)] px-4 py-1 text-white hover:bg-blue-400"
           onClick={handleConfirm}
         >
           Confirm

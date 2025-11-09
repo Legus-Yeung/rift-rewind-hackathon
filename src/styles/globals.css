@@ -1,7 +1,67 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
 }
 
+@layer base {
+  html {
+    @apply bg-background text-foreground border-border min-h-screen;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 98%;
+  --card-foreground: 0 0% 10%;
+  --primary: 220 80% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 95%;
+  --secondary-foreground: 240 5% 15%;
+  --border: 0 0% 80%;
+  --input: 0 0% 90%;
+  --ring: 220 80% 50%;
+}
+
+.theme-dark {
+  --background: 240 10% 10%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 12%;
+  --card-foreground: 0 0% 98%;
+  --primary: 220 80% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 20%;
+  --secondary-foreground: 0 0% 98%;
+  --border: 240 5% 25%;
+  --input: 240 5% 25%;
+  --ring: 220 80% 60%;
+}
+
+.theme-noxus {
+  --background: 0 10% 7%;
+  --foreground: 0 5% 95%;
+  --card: 0 15% 10%;
+  --card-foreground: 0 5% 95%;
+  --primary: 0 70% 45%;
+  --primary-foreground: 0 5% 95%;
+  --secondary: 25 35% 25%;
+  --secondary-foreground: 0 5% 95%;
+  --border: 0 20% 20%;
+  --input: 0 20% 20%;
+  --ring: 0 70% 45%;
+}

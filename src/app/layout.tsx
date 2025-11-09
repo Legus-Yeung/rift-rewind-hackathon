@@ -1,5 +1,4 @@
-import "~/styles/globals.css";
-import "../styles/dashboard.css";
+import "../styles/globals.css";
 import Navbar from "./_components/navBar";
 
 import { type Metadata } from "next";
@@ -21,12 +20,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={geist.variable}>
+    <html lang="en" className="theme-noxus">
       <body>
-        <div className="noxus-theme min-h-screen">  {/* <-- Apply theme here */}
-          <Navbar />
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-        </div>
+        <Navbar />
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );

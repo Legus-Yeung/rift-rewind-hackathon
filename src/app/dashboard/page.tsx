@@ -64,8 +64,8 @@ export default function Index() {
   };
 
   return (
-    <main className="noxus-theme min-h-screen"> 
-      <div className="bg-background min-h-screen">
+    <main>
+      <div>
         <HeroSection
           summonerName={summonerName}
           tagLine={tagLine}
@@ -75,8 +75,6 @@ export default function Index() {
           avgGameMinutes={avgGameMinutes}
           totalGames={aggregate.games}
         />
-          
-           <div className="bg-red-500 text-white p-4">Tailwind Test</div>
         <StatsOverview aggregate={aggregate} avgGameMinutes={avgGameMinutes} />
 
         <MultikillSection
@@ -88,7 +86,10 @@ export default function Index() {
 
         <ChampionsSection champions={topChamps} />
 
-        <MatchupsSection bestMatchup={bestMatchup} bestPosition={bestPosition} />
+        <MatchupsSection
+          bestMatchup={bestMatchup}
+          bestPosition={bestPosition}
+        />
 
         <VisionControlSection
           totalVisionScore={aggregate.visionScore}
@@ -118,7 +119,7 @@ export default function Index() {
         />
 
         {/* Footer */}
-        <footer className="bg-card/50 border-t-2 border-primary/30 py-8">
+        <footer className="bg-card/50 border-primary/30 border-t-2 py-8">
           <div className="container mx-auto px-4 text-center">
             <p className="text-muted-foreground text-sm">
               Summoner Wrapped • Season 2024 • Noxus Theme

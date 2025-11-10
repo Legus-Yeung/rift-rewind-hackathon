@@ -16,10 +16,13 @@ export default function HomeContent() {
         showContent ? "opacity-100" : "opacity-0"
       }`}
     >
-      <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-        Rift <span>Rewind</span>
-      </h1>
-      <SummonerInput baseRoute={`summoner`}></SummonerInput>
+      <div className="flex items-center gap-4">
+        <h1 className="text-foreground text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+          Rift <span className="text-primary">Rewind</span>
+        </h1>
+      </div>
+
+      <SummonerInput baseRoute={`summoner`} />
     </div>
   );
 }

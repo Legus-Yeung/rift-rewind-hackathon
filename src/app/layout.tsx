@@ -22,7 +22,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="theme-noxus">
       <body>
-        <Navbar />
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>

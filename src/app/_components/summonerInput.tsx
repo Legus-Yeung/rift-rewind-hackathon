@@ -35,41 +35,44 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="flex flex-row flex-wrap items-end justify-center space-x-2">
-        <label className="flex flex-col">
-          Username
+        {/* Username Input */}
+        <label className="text-primary-foreground flex flex-col text-sm">
+          Summoner Name
           <input
             type="text"
-            className="rounded border border-purple-300 bg-white px-2 py-1 text-gray-400"
+            className="border-border bg-background/70 text-foreground/90 placeholder-muted-foreground focus:ring-primary h-10 border px-3 focus:ring-2 focus:outline-none"
             value={gameName}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => {
-              setGameName(event.target.value);
-            }}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setGameName(event.target.value)
+            }
           />
         </label>
+
+        {/* Hash Separator */}
         <p
-          className="flex items-center px-1 text-4xl text-white"
+          className="text-primary-foreground flex items-center px-1 text-4xl"
           style={{ lineHeight: "0.9" }}
         >
           #
         </p>
-        <label className="flex flex-col">
+
+        {/* Tagline Input */}
+        <label className="text-primary-foreground flex flex-col text-sm">
           Tagline
           <input
             type="text"
-            className="rounded border border-purple-300 bg-white px-2 py-1 text-gray-400"
+            className="border-border bg-background/70 text-foreground/90 placeholder-muted-foreground focus:ring-primary h-10 border px-3 focus:ring-2 focus:outline-none"
             maxLength={5}
             value={tagLine}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => {
-              setTagLine(event.target.value);
-            }}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setTagLine(event.target.value)
+            }
           />
         </label>
-        <Link
-          href="/chat"
-          className="transition-colors duration-200 hover:text-[hsl(40,45%,61%)]"
-        ></Link>
+
+        {/* Confirm Button */}
         <button
-          className="rounded bg-[hsl(40,45%,61%)] px-4 py-1 text-white hover:bg-blue-400"
+          className="btn text-primary-foreground !rounded-none"
           onClick={handleConfirm}
         >
           Confirm

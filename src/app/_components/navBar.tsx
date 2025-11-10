@@ -4,19 +4,18 @@ import Link from "next/link";
 
 export default function NavBar() {
   return (
-    <nav className="sticky top-0 left-0 w-full z-50 bg-[#111] border-b border-[#2a2a2a] text-white">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
-        
-        <div className="font-extrabold text-2xl tracking-wide">
-          <Link
-            href="/"
-            className="hover:text-[hsl(40,45%,61%)] transition-colors duration-200"
-          >
-          Rift Rewind
-          </Link>
+    <nav className="bg-background border-border text-foreground sticky top-0 left-0 z-50 w-full border-b">
+      <div className="flex items-center justify-between px-6 py-3">
+        {/* Left-aligned text, flush to the left */}
+        <div className="text-2xl font-extrabold tracking-wide">
+          <Link href="/">Rift Rewind</Link>
         </div>
 
+        {/* Right side (optional) */}
+        <div className="flex items-center gap-4">
+          {/* Add links/buttons here */}
         </div>
+      </div>
     </nav>
   );
 }

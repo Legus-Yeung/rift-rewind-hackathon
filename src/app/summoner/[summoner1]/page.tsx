@@ -23,9 +23,11 @@ import { KDATrendSection } from "../../_components/KDATrendSection";
 import { ObjectiveControlSection } from "../../_components/ObjectiveControlSection";
 import { TimePlayedSection } from "../../_components/TimePlayedSection";
 import SummonerInput from "~/app/_components/summonerInput";
+import SocialLink from "~/app/_components/socialLink";
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState("overview");
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const aggregate = stats.wins.stats.aggregate;
 
@@ -120,12 +122,34 @@ export default function Index() {
           avgGameMinutes={avgGameMinutes}
         />
 
-        {/* Footer */}
-        <footer className="bg-card/50 border-primary/30 border-t-2 py-8">
-          <div className="container mx-auto px-4 text-center">
-            <SummonerInput
-              baseRoute={`summoner/${summonerName}-${tagLine}`}
-            ></SummonerInput>
+        <footer className="border-primary/30 bg-card/50 relative border-t-2 py-12">
+          <div className="from-background/80 via-background/40 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent" />
+          <div className="relative container mx-auto flex flex-col items-center justify-center space-y-8 px-4 text-center">
+            <h2 className="text-foreground text-2xl font-semibold tracking-tight">
+              Want to compare with another summoner?
+            </h2>
+            <div className="flex w-full max-w-2xl justify-center">
+              <div className="w-full sm:w-auto">
+                <SummonerInput
+                  baseRoute={`summoner/${summonerName}-${tagLine}`}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col items-center space-y-3">
+              <p className="text-muted-foreground text-sm">
+                Share your season insights with the world.
+              </p>
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="btn btn-accent !rounded-none"
+              >
+                Share
+              </button>
+            </div>
+            {isShareOpen && (
+              <SocialLink onClose={() => setIsShareOpen(false)} />
+            )}
+            <div className="from-primary via-noxus-red-light to-primary mt-10 h-[2px] w-32 rounded-full bg-gradient-to-r opacity-80" />
           </div>
         </footer>
       </div>

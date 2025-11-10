@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import stats1 from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
 import stats2 from "data/stats_sinister-0005-2025-11-08T04-46-17-505Z.json";
 
@@ -28,6 +28,7 @@ import type {
   AggregateStats,
   MatchEntry,
 } from "~/lib/summoner/summoner-interface-utils";
+import SocialLink from "~/app/_components/socialLink";
 
 type PlayerInfo = {
   name: string;
@@ -51,6 +52,7 @@ type ParsedStats = {
 };
 
 export default function ComparePage() {
+  const [isShareOpen, setIsShareOpen] = useState(false);
   // 🎯 Define players
   const players: PlayerInfo[] = [
     {
@@ -105,7 +107,6 @@ export default function ComparePage() {
 
   return (
     <main className="bg-background min-h-screen">
-      {/* 🧭 Hero Sections (side by side) */}
       <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2">
         <HeroSection
           summonerName={summ1.name}
@@ -127,7 +128,6 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* 📊 Stats Overview comparison */}
       <div className="grid grid-cols-1 gap-1 p-1 md:grid-cols-2">
         <StatsOverview
           aggregate={p1.aggregate}
@@ -141,7 +141,6 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* 🧨 Multikill Comparison */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <MultikillSection
           doubleKills={p1.aggregate.doubleKills}
@@ -157,13 +156,11 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* ⚔️ Champion Comparison */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <ChampionsSection champions={p1.topChamps} />
         <ChampionsSection champions={p2.topChamps} />
       </div>
 
-      {/* 💥 Matchups */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <MatchupsSection
           bestMatchups={p1.bestMatchups}
@@ -177,7 +174,6 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* 👁 Vision */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <VisionControlSection
           totalVisionScore={p1.aggregate.visionScore}
@@ -197,13 +193,11 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* 📈 KDA Trends */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <KDATrendSection championKDAs={p1.championKDAs} />
         <KDATrendSection championKDAs={p2.championKDAs} />
       </div>
 
-      {/* 🎯 Objective Control */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <ObjectiveControlSection
           baronTakedowns={p1.aggregate.baronTakedowns}
@@ -225,7 +219,6 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* ⏱ Time Played */}
       <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <TimePlayedSection
           topTimeChamps={p1.topTimeChamps}
@@ -239,12 +232,22 @@ export default function ComparePage() {
         />
       </div>
 
-      {/* ⚡ Footer */}
-      <footer className="bg-card/50 border-primary/30 mt-12 border-t-2 py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-muted-foreground text-sm">
-            Summoner Wrapped • Comparison Mode
-          </p>
+      <footer className="border-primary/30 bg-card/50 relative border-t-2 py-12">
+        <div className="from-background/80 via-background/40 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent" />
+        <div className="relative container mx-auto flex flex-col items-center justify-center space-y-8 px-4 text-center">
+          <div className="mt-6 flex flex-col items-center space-y-3">
+            <p className="text-muted-foreground text-sm">
+              Share this comparison.
+            </p>
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="btn btn-accent !rounded-none"
+            >
+              Share
+            </button>
+          </div>
+          {isShareOpen && <SocialLink onClose={() => setIsShareOpen(false)} />}
+          <div className="from-primary via-noxus-red-light to-primary mt-10 h-[2px] w-32 rounded-full bg-gradient-to-r opacity-80" />
         </div>
       </footer>
     </main>

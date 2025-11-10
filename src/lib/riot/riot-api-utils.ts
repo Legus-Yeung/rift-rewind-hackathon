@@ -101,6 +101,8 @@ export async function fetchAllMatchIds(
     paginatedParams.set("start", start.toString());
     paginatedParams.set("count", count.toString());
     paginatedParams.set("startTime", startTime);
+    paginatedParams.set("queue", "420");
+    paginatedParams.set("type", "ranked");
 
     const batch = await fetchMatchHistory(puuid, paginatedParams);
 
@@ -121,14 +123,18 @@ export async function fetchAllMatchIds(
     if (lastMatchId) {
       try {
         const lastMatchInfo = await fetchMatchInfo(lastMatchId);
-        const lastMatchTimestamp = lastMatchInfo.info.gameEndTimestamp ?? lastMatchInfo.info.gameStartTimestamp;
+        const lastMatchTimestamp =
+          lastMatchInfo.info.gameEndTimestamp ??
+          lastMatchInfo.info.gameStartTimestamp;
 
         if (lastMatchTimestamp < seasonStartMs) {
           const validMatches: string[] = [];
           for (const matchId of batch) {
             try {
               const matchInfo = await fetchMatchInfo(matchId);
-              const matchTimestamp = matchInfo.info.gameEndTimestamp ?? matchInfo.info.gameStartTimestamp;
+              const matchTimestamp =
+                matchInfo.info.gameEndTimestamp ??
+                matchInfo.info.gameStartTimestamp;
               if (matchTimestamp >= seasonStartMs) {
                 validMatches.push(matchId);
               } else {

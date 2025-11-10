@@ -1,6 +1,86 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --font-sans: var(--theme-font);
+}
+
+@layer base {
+  html {
+    @apply bg-background text-foreground border-border min-h-screen;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply bg-primary text-primary-foreground hover:bg-primary/80 focus-visible:ring-ring inline-flex items-center justify-center px-4 py-2 font-medium transition-colors duration-200 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50;
+    border-radius: 0;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    border-radius: 0;
+  }
+}
+
+/* Default theme */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 98%;
+  --card-foreground: 0 0% 10%;
+  --primary: 220 80% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 95%;
+  --secondary-foreground: 240 5% 15%;
+  --border: 0 0% 80%;
+  --input: 0 0% 90%;
+  --ring: 220 80% 50%;
+  --theme-font: "Geist", system-ui, sans-serif;
+}
+
+/* Dark theme */
+.theme-dark {
+  --background: 0 10% 7%;
+  --foreground: 0 5% 95%;
+  --card: 0 15% 10%;
+  --card-foreground: 0 5% 95%;
+  --primary: 0 70% 45%;
+  --primary-foreground: 0 5% 95%;
+  --secondary: 25 35% 25%;
+  --secondary-foreground: 0 5% 95%;
+  --border: 0 20% 20%;
+  --input: 0 20% 20%;
+  --ring: 0 70% 45%;
+  --theme-font: "Geist", system-ui, sans-serif;
+}
+
+/* Noxus theme */
+.theme-noxus {
+  --background: 0 0% 7%;
+  --foreground: 0 0% 95%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 95%;
+  --primary: 356 70% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 95%;
+  --border: 0 0% 20%;
+  --input: 0 0% 18%;
+  --ring: 356 70% 45%;
+  --theme-font: "Geist", system-ui, sans-serif;
 }

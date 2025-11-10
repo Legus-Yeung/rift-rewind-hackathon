@@ -21,6 +21,18 @@ const config = {
         protocol: "https",
         hostname: "cmsassets.rgpub.io",
       },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com"
+      },
+      {
+        protocol: "https",
+        hostname: "static.wikia.nocookie.net",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.communitydragon.org",
+      },
     ],
   },
 };

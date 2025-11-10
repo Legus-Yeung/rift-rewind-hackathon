@@ -1,203 +1,221 @@
-import Image from "next/image";
-import GeneralPieChart from "~/app/_components/generalPieChart";
-import ErrorFallback from "~/app/_components/errorFallback";
+"use client";
+
+import React, { useState, useEffect } from "react";
+
+import stats from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
 import {
-  getChampionGames,
-  getBestMatchupPerPosition,
-  parseSummoner,
+  getTopChampions,
+  getBestMatchups,
+  getBestPosition,
   getBestMatch,
-  type MatchupEntry,
-  type ChampionEntry,
-  getTotalGames,
-  getMostPlayedChampions,
-  getChampionInGameName,
-} from "~/lib/summoner/summoner-utils";
+  getTotalTimePlayed,
+  getTopChampionsByTimePlayed,
+} from "src/lib/summoner/summoner-page-utils";
+import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
-import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+import { HeroSection } from "../../_components/HeroSection";
+import { StatsOverview } from "../../_components/StatsOverview";
+import { MultikillSection } from "../../_components/MultiKillSection";
+import { ChampionsSection } from "../../_components/ChampionsSection";
+import { MatchupsSection } from "../../_components/MatchupsSection";
+import { VisionControlSection } from "../../_components/VisionControlSection";
+import { KDATrendSection } from "../../_components/KDATrendSection";
+import { ObjectiveControlSection } from "../../_components/ObjectiveControlSection";
+import { TimePlayedSection } from "../../_components/TimePlayedSection";
+import SummonerInput from "~/app/_components/summonerInput";
+import SocialLink from "~/app/_components/socialLink";
 
-import { baseUrl } from "~/lib/api/url-utils";
-import { apiRequest } from "~/lib/api/request-utils";
+export default function Index() {
+  const [activeSection, setActiveSection] = useState("overview");
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [insightParagraphs, setInsightParagraphs] = useState<{
+    first: string;
+    second: string;
+    third: string;
+  } | null>(null);
 
-export default async function SummonerPage({
-  params,
-}: {
-  params: Promise<{ summoner1: string }>;
-}) {
-  const { summoner1 } = await params;
+  const aggregate = stats.wins.stats.aggregate;
+  const topChamps = getTopChampions(stats);
+  const bestMatchups = getBestMatchups(stats, 3);
+  const bestPosition = getBestPosition(stats);
+  const bestMatch = getBestMatch(stats);
+  const totalTime = getTotalTimePlayed(stats);
+  const topTimeChamps = getTopChampionsByTimePlayed(stats);
+  const positionVisionData = getPositionVisionData(stats);
+  const championKDAs = getChampionKDAData(stats);
+  const hoursPlayed = totalTime.totalHours;
+  const avgGameMinutes = totalTime.avgGameLength;
 
-  try {
-    // Parse "GameName#TagLine"
-    const [gameName, tagLine] = parseSummoner(summoner1);
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: "How did dogmaster do?" }),
+        });
 
-    // Fetch base account info
-    const accountData: AccountDto = await apiRequest<AccountDto>(
-      `${baseUrl}/api/riot?action=account&gameName=${gameName ?? ""}&tagLine=${tagLine ?? ""}`,
-    );
+        if (!res.ok) {
+          throw new Error("Failed to get insights");
+        }
 
-    // Get match history and details
-    const matchHistory: string[] = await apiRequest<string[]>(
-      `${baseUrl}/api/riot?action=match-history&puuid=${accountData.puuid}&searchParams=${new URLSearchParams()}`,
-    );
+        const data = await res.json() as { question: string; answer: string };
+        const answer = data.answer;
+        const paragraphs = answer
+          .split(/\n\s*\n/)
+          .map((p) => p.trim())
+          .filter((p) => p.length > 0);
 
-    // Fetch stats concurrently
-    const [champions, bestMatchDto]: [ChampionEntry[], MatchDto] =
-      await Promise.all([
-        getChampionGames(accountData.puuid, matchHistory ?? []),
-        getBestMatch(accountData.puuid, matchHistory ?? []),
-      ]);
+        if (paragraphs.length >= 3) {
+          setInsightParagraphs({
+            first: paragraphs[0] ?? "",
+            second: paragraphs[1] ?? "",
+            third: paragraphs[2] ?? "",
+          });
+        } else if (paragraphs.length === 2) {
+          setInsightParagraphs({
+            first: paragraphs[0] ?? "",
+            second: paragraphs[1] ?? "",
+            third: "",
+          });
+        } else if (paragraphs.length === 1 && paragraphs[0]) {
+          const sentences = paragraphs[0].split(/\.\s+/);
+          const midPoint = Math.floor(sentences.length / 3);
+          setInsightParagraphs({
+            first: sentences.slice(0, midPoint).join(". ") + ".",
+            second: sentences.slice(midPoint, midPoint * 2).join(". ") + ".",
+            third: sentences.slice(midPoint * 2).join(". ") + ".",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching insights:", error);
+      }
+    };
 
-    // Extract insights
-    const top3 = getMostPlayedChampions(champions, 3);
-    const bestMatchups: MatchupEntry[] = getBestMatchupPerPosition(champions);
-    const championGames: Record<string, string | number>[] = champions.map(
-      (value) => ({
-        name: value.championKey.champion,
-        games: getTotalGames(value),
-      }),
-    );
+    void fetchInsights();
+  }, []);
 
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2e026d] to-[#15162c] px-6 py-10 text-white">
-        <div className="mx-auto w-full max-w-5xl">
-          <h1 className="mb-10 text-center text-4xl font-bold text-purple-300">
-            {accountData.gameName}#{accountData.tagLine}
-          </h1>
+  const summonerName = "Dogmaster";
+  const tagLine = "Treat";
+  const profileIcon =
+    "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
 
-          {/* Summoner Info + Chart */}
-          <div className="flex flex-col items-center gap-6 rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
-            <div className="space-y-2 text-center">
-              <p className="text-lg">
-                <span className="font-semibold">Name:</span>{" "}
-                {accountData.gameName}
-              </p>
-              <p className="text-lg">
-                <span className="font-semibold">Tag:</span>{" "}
-                {accountData.tagLine}
-              </p>
-              <p className="text-sm break-words text-gray-300">
-                <span className="font-semibold">PUUID:</span>{" "}
-                {accountData.puuid}
-              </p>
-            </div>
+  const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") ?? "Aatrox";
 
-            <div className="w-full rounded-2xl bg-white/10 p-4 shadow-md">
-              <h3 className="mb-3 text-center text-xl font-semibold text-purple-200">
-                Champion Distribution
-              </h3>
-              <GeneralPieChart
-                data={championGames}
-                title="Champion Distribution"
-                nameKey="name"
-                dataKey="games"
-              />
-            </div>
-          </div>
+  const handleSectionClick = (section: string) => {
+    setActiveSection(section);
+    const element = document.getElementById(section);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
 
-          {/* Best Matchups */}
-          <div className="mt-12 rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
-            <h2 className="mb-4 text-center text-2xl font-semibold text-purple-200">
-              Best Matchups
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <main>
+      <title>Summoner Stats | Rift Rewind</title>
+      <div>
+        <HeroSection
+          summonerName={summonerName}
+          tagLine={`#${tagLine}`}
+          profileIcon={profileIcon}
+          topChampion={topChampion}
+          hoursPlayed={hoursPlayed}
+          avgGameMinutes={avgGameMinutes}
+          totalGames={aggregate.games}
+        />
+        <StatsOverview
+          aggregate={aggregate}
+          avgGameMinutes={avgGameMinutes}
+          insightParagraph={insightParagraphs?.first}
+        />
+
+        <ChampionsSection
+          champions={topChamps}
+          insightParagraphs={
+            insightParagraphs
+              ? `${insightParagraphs.second}\n\n${insightParagraphs.third}`
+              : undefined
+          }
+        />
+
+        <MultikillSection
+          doubleKills={aggregate.doubleKills}
+          tripleKills={aggregate.tripleKills}
+          quadraKills={aggregate.quadraKills}
+          pentaKills={aggregate.pentaKills}
+        />
+
+        <MatchupsSection
+          bestMatchups={bestMatchups}
+          bestPosition={bestPosition}
+          bestMatch={bestMatch}
+        />
+
+        <VisionControlSection
+          totalVisionScore={aggregate.visionScore}
+          totalWardsPlaced={aggregate.wardsPlaced}
+          totalWardsKilled={aggregate.wardsKilled}
+          totalDetectorWards={aggregate.detectorWardsPlaced}
+          totalGames={aggregate.games}
+          positionVisionData={positionVisionData}
+        />
+
+        <KDATrendSection championKDAs={championKDAs} />
+
+        <ObjectiveControlSection
+          baronTakedowns={aggregate.baronTakedowns}
+          dragonTakedowns={aggregate.dragonTakedowns}
+          riftHeraldTakedowns={aggregate.riftHeraldTakedowns}
+          teamBaronKills={aggregate.teamBaronKills}
+          teamRiftHeraldKills={aggregate.teamRiftHeraldKills}
+          scuttleCrabKills={aggregate.scuttleCrabKills}
+          totalGames={aggregate.games}
+        />
+
+        <TimePlayedSection
+          topTimeChamps={topTimeChamps}
+          hoursPlayed={hoursPlayed}
+          avgGameMinutes={avgGameMinutes}
+        />
+
+        <footer className="border-primary/30 bg-card/50 relative border-t-2 py-12">
+          <div className="from-background/80 via-background/40 pointer-events-none absolute inset-0 bg-gradient-to-t to-transparent" />
+          <div className="relative container mx-auto flex flex-col items-center justify-center space-y-8 px-4 text-center">
+            <h2 className="text-foreground text-2xl font-semibold tracking-tight">
+              Want to compare with another summoner?
             </h2>
-
-            <div className="flex flex-col gap-4">
-              {bestMatchups.map(async (entry, i) => {
-                const player = entry.playerStats;
-                const opponent = entry.opponentStats;
-
-                const playerKDA = (
-                  (player.kills + player.assists) /
-                  Math.max(1, player.deaths)
-                ).toFixed(2);
-                const opponentKDA = (
-                  (opponent.kills + opponent.assists) /
-                  Math.max(1, opponent.deaths)
-                ).toFixed(2);
-
-                const playerIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.playerChampion}.png`;
-                const opponentIcon = `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/${entry.matchupKey.opponentChampion}.png`;
-
-                let playerChampionName: string;
-                let opponentChampionName: string;
-
-                try {
-                  playerChampionName =
-                    (await getChampionInGameName(
-                      entry.matchupKey.playerChampion,
-                    )) ?? entry.matchupKey.playerChampion;
-                  opponentChampionName =
-                    (await getChampionInGameName(
-                      entry.matchupKey.opponentChampion,
-                    )) ?? entry.matchupKey.opponentChampion;
-                } catch (error) {
-                  console.warn(error);
-                  playerChampionName = entry.matchupKey.playerChampion;
-                  opponentChampionName = entry.matchupKey.opponentChampion;
-                }
-
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded-xl bg-gray-800/70 p-4 shadow transition hover:bg-gray-700/80"
-                  >
-                    {/* Player */}
-                    <div className="flex w-24 flex-col items-center">
-                      <Image
-                        src={playerIcon}
-                        alt={playerChampionName}
-                        width={56}
-                        height={56}
-                        className="rounded-full border-2 border-blue-400"
-                      />
-                      <p className="mt-1 text-sm font-semibold text-blue-300">
-                        {playerChampionName}
-                      </p>
-                    </div>
-
-                    {/* Player Stats */}
-                    <div className="flex flex-col items-center text-sm">
-                      <p className="font-semibold text-green-400">
-                        Wins: {player.wins}
-                      </p>
-                      <p>KDA: {playerKDA}</p>
-                    </div>
-
-                    {/* Opponent Stats */}
-                    <div className="flex flex-col items-center text-sm">
-                      <p className="font-semibold text-red-400">
-                        Wins: {opponent.wins}
-                      </p>
-                      <p>KDA: {opponentKDA}</p>
-                    </div>
-
-                    {/* Opponent */}
-                    <div className="flex w-24 flex-col items-center">
-                      <Image
-                        src={opponentIcon}
-                        alt={opponentChampionName}
-                        width={56}
-                        height={56}
-                        className="rounded-full border-2 border-red-400"
-                      />
-                      <p className="mt-1 text-sm font-semibold text-red-300">
-                        {opponentChampionName}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex w-full max-w-2xl justify-center">
+              <div className="w-full sm:w-auto">
+                <SummonerInput
+                  baseRoute={`summoner/${summonerName}-${tagLine}`}
+                />
+              </div>
             </div>
+            <div className="mt-6 flex flex-col items-center space-y-3">
+              <p className="text-muted-foreground text-sm">
+                Share your season insights with the world.
+              </p>
+              <button
+                onClick={() => setIsShareOpen(true)}
+                className="btn btn-accent !rounded-none"
+              >
+                Share
+              </button>
+            </div>
+            {isShareOpen && (
+              <SocialLink onClose={() => setIsShareOpen(false)} />
+            )}
+            <div className="from-primary via-noxus-red-light to-primary mt-10 h-[2px] w-32 rounded-full bg-gradient-to-r opacity-80" />
           </div>
-        </div>
+        </footer>
       </div>
-    );
-  } catch (err) {
-    console.error(err);
-    return (
-      <ErrorFallback
-        title="Error Loading Summoner"
-        message="The Riot API may be unavailable, or the summoner name is invalid."
-      />
-    );
-  }
+    </main>
+  );
 }

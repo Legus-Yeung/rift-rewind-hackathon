@@ -1,101 +1,223 @@
-import ErrorFallback from "~/app/_components/errorFallback";
-import { parseSummoner } from "~/lib/summoner/summoner-api-utils";
 
-import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
+"use client";
 
-import { baseUrl } from "~/lib/api/url-utils";
-import { apiRequest } from "~/lib/api/request-utils";
-import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
+import React from "react";
+import stats1 from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
+import stats2 from "data/stats_sinister-0005-2025-11-08T04-46-17-505Z.json";
 
-export default async function SummonerSharePage({
-  params,
-}: {
-  params: Promise<{ summoner1: string; summoner2: string }>;
-}) {
-  const { summoner1, summoner2 } = await params;
-  const summonerNames = [summoner1, summoner2];
+import {
+  getTopChampions,
+  getBestMatchups,
+  getBestPosition,
+  getBestMatch,
+  getTotalTimePlayed,
+  getTopChampionsByTimePlayed,
+} from "src/lib/summoner-data";
+import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
-  try {
-    const parsedSummoners = summonerNames.map((s) => parseSummoner(s));
-    const accountData = await Promise.all(
-      parsedSummoners.map(([gameName, tagLine]) =>
-        apiRequest<AccountDto>(
-          `${baseUrl}/api/riot?action=account&gameName=${gameName ?? ""}&tagLine=${tagLine ?? ""}`,
-        ),
-      ),
-    );
+import { HeroSection } from "../../../_components/HeroSection";
+import { StatsOverview } from "../../../_components/StatsOverview";
+import { MultikillSection } from "../../../_components/MultiKillSection";
+import { ChampionsSection } from "../../../_components/ChampionsSection";
+import { MatchupsSection } from "../../../_components/MatchupsSection";
+import { VisionControlSection } from "../../../_components/VisionControlSection";
+import { KDATrendSection } from "../../../_components/KDATrendSection";
+import { ObjectiveControlSection } from "../../../_components/ObjectiveControlSection";
+import { TimePlayedSection } from "../../../_components/TimePlayedSection";
+import { CompareValue } from "~/app/_components/compareValue";
 
-    const summonerData: MatchEntry[] = [];
+export default function ComparePage() {
+  // 🎯 Parse both players
+  const players = [
+    {
+      name: "Dogmaster",
+      tag: "#Treat",
+      profileIcon: "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png",
+      stats: stats1,
+    },
+    {
+      name: "Sinister",
+      tag: "#0005",
+      profileIcon: "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/7.png",
+      stats: stats2,
+    },
+  ];
 
-    for (let i = 0; i < 2; i++) {
-      const response = await fetch(
-        `${baseUrl}/api/summoner?gameName=${accountData[i]?.gameName}&tagLine=${accountData[i]?.tagLine}`,
-        {
-          method: "POST",
-        },
-      );
+  
+  const parsed = players.map(({ stats }) => {
+    const aggregate = stats.wins.stats.aggregate;
+    const topChamps = getTopChampions(stats);
+    const bestMatchups = getBestMatchups(stats, 3);
+    const bestPosition = getBestPosition(stats);
+    const bestMatch = getBestMatch(stats);
+    const totalTime = getTotalTimePlayed(stats);
+    const topTimeChamps = getTopChampionsByTimePlayed(stats);
+    const positionVisionData = getPositionVisionData(stats);
+    const championKDAs = getChampionKDAData(stats);
 
-      if (!response.body) throw new Error("No response body");
+    return {
+      aggregate,
+      topChamps,
+      bestMatchups,
+      bestPosition,
+      bestMatch,
+      totalTime,
+      topTimeChamps,
+      positionVisionData,
+      championKDAs,
+      hoursPlayed: totalTime.totalHours,
+      avgGameMinutes: totalTime.avgGameLength,
+    };
+  });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let result = "";
+  const [p1, p2] = parsed;
+  const [summ1, summ2] = players;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        result += decoder.decode(value, { stream: true });
-        console.log("Received chunk:", decoder.decode(value));
-      }
-
-      // Parse the final JSON once fully received
-      summonerData[i] = JSON.parse(result) as MatchEntry;
-    }
-
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2e026d] to-[#15162c] px-6 py-10 text-white">
-        <div className="mx-auto w-full max-w-6xl">
-          <h1 className="mb-10 text-center text-4xl font-bold text-purple-300">
-            Summoner Comparison
-          </h1>
-
-          {/* Grid: Summoner Info + Charts */}
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-            {accountData.map((account, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center gap-6 rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md"
-              >
-                <h2 className="text-2xl font-bold text-purple-200">
-                  {`Summoner ${i + 1}`}
-                </h2>
-                <div className="space-y-2 text-center">
-                  <p className="text-lg">
-                    <span className="font-semibold">Name:</span>{" "}
-                    {account.gameName}
-                  </p>
-                  <p className="text-lg">
-                    <span className="font-semibold">Tag:</span>{" "}
-                    {account.tagLine}
-                  </p>
-                  <p className="text-sm break-words text-gray-300">
-                    <span className="font-semibold">PUUID:</span>{" "}
-                    {account.puuid}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+  return (
+    <main className="bg-background min-h-screen">
+      {/* 🧭 Hero Sections (side by side) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+        <HeroSection
+          summonerName={summ1.name}
+          tagLine={summ1.tag}
+          profileIcon={summ1.profileIcon}
+          topChampion={p1.topChamps[0]?.name || "Aatrox"}
+          hoursPlayed={p1.hoursPlayed}
+          avgGameMinutes={p1.avgGameMinutes}
+          totalGames={p1.aggregate.games}
+        />
+        <HeroSection
+          summonerName={summ2.name}
+          tagLine={summ2.tag}
+          profileIcon={summ2.profileIcon}
+          topChampion={p2.topChamps[0]?.name || "Aatrox"}
+          hoursPlayed={p2.hoursPlayed}
+          avgGameMinutes={p2.avgGameMinutes}
+          totalGames={p2.aggregate.games}
+        />
       </div>
-    );
-  } catch (err) {
-    console.error(err);
-    return (
-      <ErrorFallback
-        title="Error Loading Summoners"
-        message="The Riot API may be unavailable, or one of the summoner names is invalid."
-      />
-    );
-  }
+
+      {/* 📊 Stats Overview comparison */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-1 p-1">
+        <StatsOverview
+            aggregate={p1.aggregate}
+            avgGameMinutes={p1.avgGameMinutes}
+            compareWith={p2.aggregate}
+            />
+            <StatsOverview
+            aggregate={p2.aggregate}
+            avgGameMinutes={p2.avgGameMinutes}
+            compareWith={p1.aggregate}
+            />
+      </div>
+
+      {/* 🧨 Multikill Comparison */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        
+        <MultikillSection
+          doubleKills={p1.aggregate.doubleKills}
+          tripleKills={p1.aggregate.tripleKills}
+          quadraKills={p1.aggregate.quadraKills}
+          pentaKills={p1.aggregate.pentaKills}
+        />
+        <MultikillSection
+          doubleKills={p2.aggregate.doubleKills}
+          tripleKills={p2.aggregate.tripleKills}
+          quadraKills={p2.aggregate.quadraKills}
+          pentaKills={p2.aggregate.pentaKills}
+        />
+      </div>
+
+      {/* ⚔️ Champion Comparison */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <ChampionsSection champions={p1.topChamps} />
+        <ChampionsSection champions={p2.topChamps} />
+      </div>
+
+      {/* 💥 Matchups */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <MatchupsSection
+          bestMatchups={p1.bestMatchups}
+          bestPosition={p1.bestPosition}
+          bestMatch={p1.bestMatch}
+        />
+        <MatchupsSection
+          bestMatchups={p2.bestMatchups}
+          bestPosition={p2.bestPosition}
+          bestMatch={p2.bestMatch}
+        />
+      </div>
+
+      {/* 👁 Vision */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <VisionControlSection
+          totalVisionScore={p1.aggregate.visionScore}
+          totalWardsPlaced={p1.aggregate.wardsPlaced}
+          totalWardsKilled={p1.aggregate.wardsKilled}
+          totalDetectorWards={p1.aggregate.detectorWardsPlaced}
+          totalGames={p1.aggregate.games}
+          positionVisionData={p1.positionVisionData}
+        />
+        <VisionControlSection
+          totalVisionScore={p2.aggregate.visionScore}
+          totalWardsPlaced={p2.aggregate.wardsPlaced}
+          totalWardsKilled={p2.aggregate.wardsKilled}
+          totalDetectorWards={p2.aggregate.detectorWardsPlaced}
+          totalGames={p2.aggregate.games}
+          positionVisionData={p2.positionVisionData}
+        />
+      </div>
+
+      {/* 📈 KDA Trends */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <KDATrendSection championKDAs={p1.championKDAs} />
+        <KDATrendSection championKDAs={p2.championKDAs} />
+      </div>
+
+      {/* 🎯 Objective Control */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <ObjectiveControlSection
+          baronTakedowns={p1.aggregate.baronTakedowns}
+          dragonTakedowns={p1.aggregate.dragonTakedowns}
+          riftHeraldTakedowns={p1.aggregate.riftHeraldTakedowns}
+          teamBaronKills={p1.aggregate.teamBaronKills}
+          teamRiftHeraldKills={p1.aggregate.teamRiftHeraldKills}
+          scuttleCrabKills={p1.aggregate.scuttleCrabKills}
+          totalGames={p1.aggregate.games}
+        />
+        <ObjectiveControlSection
+          baronTakedowns={p2.aggregate.baronTakedowns}
+          dragonTakedowns={p2.aggregate.dragonTakedowns}
+          riftHeraldTakedowns={p2.aggregate.riftHeraldTakedowns}
+          teamBaronKills={p2.aggregate.teamBaronKills}
+          teamRiftHeraldKills={p2.aggregate.teamRiftHeraldKills}
+          scuttleCrabKills={p2.aggregate.scuttleCrabKills}
+          totalGames={p2.aggregate.games}
+        />
+      </div>
+
+      {/* ⏱ Time Played */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+        <TimePlayedSection
+          topTimeChamps={p1.topTimeChamps}
+          hoursPlayed={p1.hoursPlayed}
+          avgGameMinutes={p1.avgGameMinutes}
+        />
+        <TimePlayedSection
+          topTimeChamps={p2.topTimeChamps}
+          hoursPlayed={p2.hoursPlayed}
+          avgGameMinutes={p2.avgGameMinutes}
+        />
+      </div>
+
+      {/* ⚡ Footer */}
+      <footer className="bg-card/50 border-primary/30 border-t-2 py-8 mt-12">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground text-sm">
+            Summoner Wrapped • Comparison Mode
+          </p>
+        </div>
+      </footer>
+    </main>
+  );
 }

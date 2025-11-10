@@ -1,104 +1,141 @@
-import Image from "next/image";
-import GeneralPieChart from "~/app/_components/generalPieChart";
-import ErrorFallback from "~/app/_components/errorFallback";
 
-import { parseSummoner } from "~/lib/summoner/summoner-api-utils";
+"use client";
 
-import type { AccountDto } from "~/lib/riot/dtos/account/account.dto";
-import type { MatchDto } from "~/lib/riot/dtos/match/match.dto";
+import React, { useState } from "react";
 
-import { baseUrl } from "~/lib/api/url-utils";
-import { apiRequest } from "~/lib/api/request-utils";
-import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
+import stats from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
+import {
+  getTopChampions,
+  getBestMatchups,
+  getBestPosition,
+  getBestMatch,
+  getTotalTimePlayed,
+  getTopChampionsByTimePlayed,
+} from "src/lib/summoner-data";
+import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
-export default async function SummonerPage({
-  params,
-}: {
-  params: Promise<{ summoner1: string }>;
-}) {
-  const { summoner1 } = await params;
+import { HeroSection } from "../../_components/HeroSection";
+import { StatsOverview } from "../../_components/StatsOverview";
+import { MultikillSection } from "../../_components/MultiKillSection";
+import { ChampionsSection } from "../../_components/ChampionsSection";
+import { MatchupsSection } from "../../_components/MatchupsSection";
+import { VisionControlSection } from "../../_components/VisionControlSection";
+import { KDATrendSection } from "../../_components/KDATrendSection";
+import { ObjectiveControlSection } from "../../_components/ObjectiveControlSection";
+import { TimePlayedSection } from "../../_components/TimePlayedSection";
+import SummonerInput from "~/app/_components/summoner-input";
 
-  try {
-    // Parse "GameName#TagLine"
-    const [gameName, tagLine] = parseSummoner(summoner1);
 
-    const response = await fetch(
-      `${baseUrl}/api/summoner?gameName=${gameName}&tagLine=${tagLine}`,
-      {
-        method: "POST",
-      },
-    );
+export default function Index() {
+  const [activeSection, setActiveSection] = useState("overview");
 
-    if (!response.body) throw new Error("No response body");
+  const aggregate = stats.wins.stats.aggregate;
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let result = "";
+  
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      result += decoder.decode(value, { stream: true });
-      console.log("Received chunk:", decoder.decode(value));
+  // Derived stats
+  const topChamps = getTopChampions(stats);
+  const bestMatchups = getBestMatchups(stats, 3);
+  const bestPosition = getBestPosition(stats);
+  const bestMatch = getBestMatch(stats);
+  const totalTime = getTotalTimePlayed(stats);
+  const topTimeChamps = getTopChampionsByTimePlayed(stats);
+  const positionVisionData = getPositionVisionData(stats);
+  const championKDAs = getChampionKDAData(stats);
+  const hoursPlayed = totalTime.totalHours;
+  const avgGameMinutes = totalTime.avgGameLength;
+
+  // Summoner info
+  const summonerName = "Dogmaster";
+  const tagLine = "#Treat";
+  const profileIcon =
+    "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
+
+  const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") || "Aatrox";
+
+  const handleSectionClick = (section: string) => {
+    setActiveSection(section);
+    const element = document.getElementById(section);
+    if (element) {
+      const offset = 80; // Height of sticky nav
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
     }
+  };
 
-    // Parse the final JSON once fully received
-    const res = JSON.parse(result);
-
-    if (!res.success) {
-      throw new Error(res.error);
-    }
-
-    const summoner: MatchEntry = res.data as MatchEntry;
-
-    // Fetch base account info
-    const accountData: AccountDto = await apiRequest<AccountDto>(
-      `${baseUrl}/api/riot?action=account&gameName=${gameName ?? ""}&tagLine=${tagLine ?? ""}`,
-    );
-
-    // Get match history and details
-    const matchHistory: string[] = await apiRequest<string[]>(
-      `${baseUrl}/api/riot?action=match-history&puuid=${accountData.puuid}&searchParams=${new URLSearchParams()}`,
-    );
-
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2e026d] to-[#15162c] px-6 py-10 text-white">
-        <div className="mx-auto w-full max-w-5xl">
-          <h1 className="mb-10 text-center text-4xl font-bold text-purple-300">
-            {accountData.gameName}#{accountData.tagLine}
-          </h1>
-
-          {/* Summoner Info + Chart */}
-          <div className="flex flex-col items-center gap-6 rounded-2xl bg-white/10 p-6 shadow-lg backdrop-blur-md">
-            <div className="space-y-2 text-center">
-              <p className="text-lg">
-                <span className="font-semibold">Name:</span>{" "}
-                {accountData.gameName}
-              </p>
-              <p className="text-lg">
-                <span className="font-semibold">Tag:</span>{" "}
-                {accountData.tagLine}
-              </p>
-              <p className="text-sm break-words text-gray-300">
-                <span className="font-semibold">PUUID:</span>{" "}
-                {accountData.puuid}
-              </p>
-            </div>
-
-            <div className="w-full rounded-2xl bg-white/10 p-4 shadow-md">
-              {JSON.stringify(summoner, null, 2)}
-            </div>
-          </div>
+  return (
+    <main>
+      <div>
+        <HeroSection
+          summonerName={summonerName}
+          tagLine={tagLine}
+          profileIcon={profileIcon}
+          topChampion={topChampion}
+          hoursPlayed={hoursPlayed}
+          avgGameMinutes={avgGameMinutes}
+          totalGames={aggregate.games}
+        />
+        <div className="absolute top-15 right-6 z-20">
+          <SummonerInput />
         </div>
+        <StatsOverview aggregate={aggregate} avgGameMinutes={avgGameMinutes} />
+
+        <MultikillSection
+          doubleKills={aggregate.doubleKills}
+          tripleKills={aggregate.tripleKills}
+          quadraKills={aggregate.quadraKills}
+          pentaKills={aggregate.pentaKills}
+        />
+
+        <ChampionsSection champions={topChamps} />
+
+        <MatchupsSection
+          bestMatchups={bestMatchups}
+          bestPosition={bestPosition}
+          bestMatch={bestMatch}
+        />
+
+        <VisionControlSection
+          totalVisionScore={aggregate.visionScore}
+          totalWardsPlaced={aggregate.wardsPlaced}
+          totalWardsKilled={aggregate.wardsKilled}
+          totalDetectorWards={aggregate.detectorWardsPlaced}
+          totalGames={aggregate.games}
+          positionVisionData={positionVisionData}
+        />
+
+        <KDATrendSection championKDAs={championKDAs} />
+
+        <ObjectiveControlSection
+          baronTakedowns={aggregate.baronTakedowns}
+          dragonTakedowns={aggregate.dragonTakedowns}
+          riftHeraldTakedowns={aggregate.riftHeraldTakedowns}
+          teamBaronKills={aggregate.teamBaronKills}
+          teamRiftHeraldKills={aggregate.teamRiftHeraldKills}
+          scuttleCrabKills={aggregate.scuttleCrabKills}
+          totalGames={aggregate.games}
+        />
+
+        <TimePlayedSection
+          topTimeChamps={topTimeChamps}
+          hoursPlayed={hoursPlayed}
+          avgGameMinutes={avgGameMinutes}
+        />
+
+        {/* Footer */}
+        <footer className="bg-card/50 border-primary/30 border-t-2 py-8">
+          <div className="container mx-auto px-4 text-center">
+            <p className="text-muted-foreground text-sm">
+              Idk what to put here
+            </p>
+          </div>
+        </footer>
       </div>
-    );
-  } catch (err) {
-    console.error(err);
-    return (
-      <ErrorFallback
-        title="Error Loading Summoner"
-        message="The Riot API may be unavailable, or the summoner name is invalid."
-      />
-    );
-  }
+    </main>
+  );
 }

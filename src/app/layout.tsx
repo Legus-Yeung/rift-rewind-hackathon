@@ -1,9 +1,8 @@
-import "~/styles/globals.css";
-import Navbar from "./_components/navBar"
+import "../styles/globals.css";
+import Navbar from "./_components/navBar";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
-
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
@@ -21,9 +20,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
+    <html lang="en" className="theme-noxus">
       <body>
-        <Navbar/>
+        <Navbar />
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>

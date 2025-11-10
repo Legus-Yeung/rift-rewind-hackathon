@@ -1,29 +1,38 @@
-# Create T3 App
+# Rift Rewind 🎮
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+An AI-powered League of Legends coaching agent that transforms match history data into personalized insights, helping players reflect, learn, and improve their gameplay.
 
-## What's next? How do I make an app with this?
+## 🎯 Project Vision
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Build an intelligent agent using AWS AI services and the League API to generate personalized end-of-year insights that go beyond typical stat tracking. Help players discover their strengths, identify growth areas, and celebrate their journey in League of Legends.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## 🚧 What We're Building
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### Core Features (In Progress)
+- **Match History Analysis** - Process full-year match data to identify patterns
+- **AI-Powered Insights** - Generate personalized recommendations using AWS Bedrock
+- **Performance Visualizations** - Track progress over time with interactive charts
+- **Year-End Summaries** - Create shareable retrospectives highlighting achievements
+- **Social Comparisons** - Compare playstyles with friends and teammates
 
-## Learn More
+### Tech Stack
+- **Frontend**: Next.js, TypeScript, Tailwind CSS
+- **Backend**: tRPC, Prisma, NextAuth.js
+- **AI Services**: AWS Bedrock, Amazon SageMaker
+- **Data Source**: League of Legends API
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## 🛠️ Development Status
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Currently integrating Riot Games API endpoints and setting up AWS AI services for match data analysis.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## 🏆 Hackathon Goals
 
-## How do I deploy this?
+Participating in the AWS + Riot Games "Rift Rewind" hackathon to build innovative tools that help League players:
+- Reflect on their gameplay journey
+- Learn from persistent patterns
+- Celebrate standout moments
+- Share insights with friends
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+---
+
+*Built with ❤️ for the League of Legends community*

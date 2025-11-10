@@ -12,11 +12,13 @@ interface StatsOverviewProps {
   };
   avgGameMinutes: number;
   compareWith?: AggregateStats;
+  insightParagraph?: string;
 }
 
 export function StatsOverview({
   aggregate,
   avgGameMinutes,
+  insightParagraph,
 }: StatsOverviewProps) {
   const kda = (
     (aggregate.kills + aggregate.assists) /
@@ -25,7 +27,7 @@ export function StatsOverview({
 
   const stats = [
     {
-      label: "K / D / A",
+      label: "Total K / D / A",
       value: `${aggregate.kills} / ${aggregate.deaths} / ${aggregate.assists}`,
       highlight: true,
     },
@@ -68,6 +70,14 @@ export function StatsOverview({
             </div>
           ))}
         </div>
+
+        {insightParagraph && (
+          <div className="mt-8 bg-card/50 border border-border p-6 rounded-lg">
+            <p className="text-foreground text-base leading-relaxed">
+              {insightParagraph}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

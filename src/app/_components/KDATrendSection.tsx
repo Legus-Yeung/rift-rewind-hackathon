@@ -54,7 +54,6 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
           <div className="w-20 h-1 bg-primary mt-2"></div>
         </div>
 
-        {/* KDA Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-card border-2 border-noxus-gold p-6 transition-all duration-300 hover:shadow-xl hover:shadow-noxus-gold/30">
             <div className="flex items-center gap-3 mb-3">
@@ -90,7 +89,6 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
           </div>
         </div>
 
-        {/* KDA Chart */}
         <div className="bg-card border-2 border-border p-6 mb-8">
           <h3 className="text-xl font-bold text-foreground mb-6 uppercase tracking-wide">
             KDA by Champion (Top 8 Most Played)
@@ -129,7 +127,6 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* K/D/A Breakdown Chart */}
         <div className="bg-card border-2 border-border p-6">
           <h3 className="text-xl font-bold text-foreground mb-6 uppercase tracking-wide">
             Average K/D/A per Game by Champion

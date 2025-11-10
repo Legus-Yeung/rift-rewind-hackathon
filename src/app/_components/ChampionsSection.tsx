@@ -8,9 +8,13 @@ interface Champion {
 
 interface ChampionsSectionProps {
   champions: Champion[];
+  insightParagraphs?: string;
 }
 
-export function ChampionsSection({ champions }: ChampionsSectionProps) {
+export function ChampionsSection({
+  champions,
+  insightParagraphs,
+}: ChampionsSectionProps) {
   return (
     <section id="champions" className="py-16 bg-card/30">
       <div className="container mx-auto px-4">
@@ -29,12 +33,10 @@ export function ChampionsSection({ champions }: ChampionsSectionProps) {
                 key={champ.name}
                 className="group relative bg-card border-2 border-border overflow-hidden transition-all duration-300 hover:border-primary"
               >
-                {/* Rank Badge */}
                 <div className="absolute top-0 left-0 z-10 bg-primary text-primary-foreground w-12 h-12 flex items-center justify-center text-xl font-bold">
                   {index + 1}
                 </div>
 
-                {/* Champion Image Background */}
                 <div
                   className="h-48 bg-cover bg-center relative"
                   style={{
@@ -44,7 +46,6 @@ export function ChampionsSection({ champions }: ChampionsSectionProps) {
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent"></div>
                 </div>
 
-                {/* Stats */}
                 <div className="p-6 space-y-4">
                   <div className="flex items-center gap-4">
                     <img
@@ -73,6 +74,14 @@ export function ChampionsSection({ champions }: ChampionsSectionProps) {
             );
           })}
         </div>
+
+        {insightParagraphs && (
+          <div className="mt-8 bg-card/50 border border-border p-6 rounded-lg">
+            <div className="text-foreground text-base leading-relaxed whitespace-pre-line">
+              {insightParagraphs}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

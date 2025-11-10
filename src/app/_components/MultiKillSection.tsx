@@ -151,7 +151,6 @@ export function MultikillSection({
                 animationDelay: `${index * 100}ms`,
               }}
             >
-              {/* Achievement Badge */}
               {multikill.value > 0 && multikill.rarity === "legendary" && (
                 <div className="absolute -top-3 -right-3 bg-noxus-gold text-noxus-black px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full shadow-lg animate-pulse">
                   Legendary!
@@ -163,22 +162,18 @@ export function MultikillSection({
                 </div>
               )}
 
-              {/* Icon */}
               <div className={`mb-4 ${getRarityTextColor(multikill.rarity, multikill.value)} group-hover:scale-110 transition-transform duration-300`}>
                 {multikill.icon}
               </div>
 
-              {/* Label */}
               <h3 className="text-xl font-bold text-foreground mb-1">
                 {multikill.label}
               </h3>
               
-              {/* Description */}
               <p className="text-xs text-muted-foreground mb-4 min-h-[2.5rem]">
                 {multikill.description}
               </p>
 
-              {/* Value */}
               <div className="mt-auto pt-4 border-t border-border">
                 <div className="flex items-baseline justify-between">
                   <span className="text-sm text-muted-foreground uppercase tracking-wide">
@@ -190,7 +185,6 @@ export function MultikillSection({
                 </div>
               </div>
 
-              {/* Locked overlay for zero achievements */}
               {multikill.value === 0 && (
                 <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] flex items-center justify-center rounded">
                   <div className="text-center">
@@ -202,7 +196,6 @@ export function MultikillSection({
           ))}
         </div>
 
-        {/* Achievement Summary */}
         <div className="mt-8 bg-card/30 border border-border p-6 rounded">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>

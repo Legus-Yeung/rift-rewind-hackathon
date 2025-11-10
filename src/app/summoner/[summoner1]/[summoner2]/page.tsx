@@ -107,6 +107,7 @@ export default function ComparePage() {
 
   return (
     <main className="bg-background min-h-screen">
+      <title>Summoners Comparison | Rift Rewind</title>
       <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2">
         <HeroSection
           summonerName={summ1.name}

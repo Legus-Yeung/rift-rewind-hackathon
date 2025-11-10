@@ -35,7 +35,6 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="flex flex-row flex-wrap items-end justify-center space-x-2">
-        {/* Username Input */}
         <label className="text-primary-foreground flex flex-col text-sm">
           Summoner Name
           <input
@@ -48,7 +47,6 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
           />
         </label>
 
-        {/* Hash Separator */}
         <p
           className="text-primary-foreground flex items-center px-1 text-4xl"
           style={{ lineHeight: "0.9" }}
@@ -56,7 +54,6 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
           #
         </p>
 
-        {/* Tagline Input */}
         <label className="text-primary-foreground flex flex-col text-sm">
           Tagline
           <input
@@ -70,7 +67,6 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
           />
         </label>
 
-        {/* Confirm Button */}
         <button
           className="btn text-primary-foreground !rounded-none"
           onClick={handleConfirm}

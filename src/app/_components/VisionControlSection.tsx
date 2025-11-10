@@ -77,9 +77,8 @@ export function VisionControlSection({
     .sort((a, b) => b.visionScore - a.visionScore);
 
   return (
-    <section id="vision" className="bg-card/30 py-16">
+    <section id="vision" className="py-16">
       <div className="container mx-auto px-4">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3">
             <Eye className="text-primary h-8 w-8" />
@@ -90,7 +89,6 @@ export function VisionControlSection({
           <div className="bg-primary mt-2 h-1 w-20"></div>
         </div>
 
-        {/* Overview Stats */}
         <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
           <div className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-6 transition-all hover:shadow-lg">
             <div className="mb-3 flex items-center gap-3">
@@ -179,7 +177,6 @@ export function VisionControlSection({
           </div>
         </div>
 
-        {/* Vision Score by Position */}
         <div className="bg-card border-border mb-8 border-2 p-6">
           <h3 className="text-foreground mb-6 text-xl font-bold tracking-wide uppercase">
             Vision Score by Position
@@ -214,7 +211,6 @@ export function VisionControlSection({
           </ResponsiveContainer>
         </div>
 
-        {/* Detailed Position Stats */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
           {positionVisionData.map((pos) => {
             const displayName = displayPositionName(pos.position);

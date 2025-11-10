@@ -33,7 +33,7 @@ export function MatchupsSection({
   bestMatch,
 }: MatchupsSectionProps) {
   return (
-    <section id="matchups" className="py-16">
+    <section id="matchups" className="py-16 bg-card/30">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-foreground text-3xl font-bold tracking-wide uppercase">
@@ -43,7 +43,6 @@ export function MatchupsSection({
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
-          {/* Top 3 Best Matchups */}
           <div className="space-y-4 lg:col-span-1">
             {bestMatchups.map((matchup, index) => (
               <div
@@ -62,7 +61,6 @@ export function MatchupsSection({
                 </div>
 
                 <div className="mb-4 flex items-center justify-between gap-4">
-                  {/* Player Champion */}
                   <div className="flex flex-1 items-center gap-3">
                     <div className="group relative">
                       <div className="bg-primary/50 absolute -inset-1 rounded-lg blur transition group-hover:blur-md"></div>
@@ -83,12 +81,10 @@ export function MatchupsSection({
                     </p>
                   </div>
 
-                  {/* VS */}
                   <div className="bg-primary/20 border-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2">
                     <span className="text-primary text-sm font-bold">VS</span>
                   </div>
 
-                  {/* Opponent Champion */}
                   <div className="flex flex-1 items-center justify-end gap-3">
                     <p className="text-muted-foreground text-right text-base font-bold">
                       {matchup.opponentChampion}
@@ -119,7 +115,6 @@ export function MatchupsSection({
             ))}
           </div>
 
-          {/* Best Position */}
           {bestPosition && (
             <div className="bg-card border-border hover:border-primary min-h-[250px] border-2 p-4 transition-all duration-300">
               <h3 className="text-muted-foreground mb-6 text-sm tracking-wider uppercase">
@@ -175,7 +170,6 @@ export function MatchupsSection({
 
           {bestMatch && (
             <div className="bg-card border-border hover:border-primary hover:shadow-primary/10 relative overflow-hidden rounded-lg border-2 p-8 transition-all duration-300 hover:shadow-xl lg:col-span-2">
-              {/* Splash background */}
               <img
                 src={`https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${bestMatch.champion}_0.jpg`}
                 alt={`${bestMatch.champion} splash art`}
@@ -186,10 +180,8 @@ export function MatchupsSection({
                 }}
               />
 
-              {/* Overlay for readability */}
               <div className="from-background via-background/50 absolute inset-0 bg-gradient-to-t to-transparent"></div>
 
-              {/* Foreground content */}
               <div className="relative z-10 flex flex-col items-center justify-center py-8">
                 <h3 className="text-muted-foreground mb-6 text-sm tracking-wider uppercase">
                   Best Single Match

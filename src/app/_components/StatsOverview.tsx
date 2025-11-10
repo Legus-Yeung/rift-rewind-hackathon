@@ -10,7 +10,9 @@ interface StatsOverviewProps {
     games: number;
   };
   avgGameMinutes: number;
+  compareWith?: any;
 }
+
 
 export function StatsOverview({ aggregate, avgGameMinutes }: StatsOverviewProps) {
   const kda = ((aggregate.kills + aggregate.assists) / Math.max(1, aggregate.deaths)).toFixed(2);

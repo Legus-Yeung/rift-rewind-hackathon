@@ -39,7 +39,7 @@ export function MatchupsSection({ bestMatchups, bestPosition, bestMatch }: Match
           <div className="w-20 h-1 bg-primary mt-2"></div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Top 3 Best Matchups */}
           <div className="lg:col-span-1 space-y-4">
             {bestMatchups.map((matchup, index) => (
@@ -121,23 +121,39 @@ export function MatchupsSection({ bestMatchups, bestPosition, bestMatch }: Match
 
               <div className="flex flex-col items-center justify-center py-8">
                 <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center border-4 border-primary mb-6">
-                  <Image
-                    src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-${
-                      {
-                        Top: "top",
-                        Jungle: "jungle",
-                        Mid: "middle",
-                        Bot: "bottom",
-                        Support: "utility",
-                      }[bestPosition.position] || "jungle"
-                    }.png`}
-                    alt={`Position ${bestPosition.position}`}
-                    width={80}
-                    height={80}
-                  />
+                <Image
+                  src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-${
+                    {
+                      top: "top",
+                      jungle: "jungle",
+                      mid: "middle",
+                      middle: "middle",
+                      bot: "bottom",
+                      bottom: "bottom",
+                      support: "utility",
+                      utility: "utility",
+                    }[bestPosition.position.toLowerCase()] || "jungle"
+                  }.png`}
+                  alt={`Position ${bestPosition.position}`}
+                  width={80}
+                  height={80}
+                />
+
+
                 </div>
                 <h4 className="text-3xl font-bold text-foreground mb-2 uppercase">
-                  {bestPosition.position}
+                  {
+                    {
+                      top: "Top",
+                      jungle: "Jungle",
+                      mid: "Mid",
+                      middle: "Mid",
+                      bot: "Bottom",
+                      bottom: "Bottom",
+                      support: "Support",
+                      utility: "Support",
+                    }[bestPosition.position.toLowerCase()] || bestPosition.position
+                  }
                 </h4>
                 <p className="text-muted-foreground mb-6">Your best performing role</p>
               </div>

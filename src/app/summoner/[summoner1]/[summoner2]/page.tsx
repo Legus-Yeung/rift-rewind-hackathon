@@ -23,6 +23,7 @@ import { VisionControlSection } from "../../../_components/VisionControlSection"
 import { KDATrendSection } from "../../../_components/KDATrendSection";
 import { ObjectiveControlSection } from "../../../_components/ObjectiveControlSection";
 import { TimePlayedSection } from "../../../_components/TimePlayedSection";
+import { CompareValue } from "~/app/_components/compareValue";
 
 export default function ComparePage() {
   // 🎯 Parse both players
@@ -41,6 +42,7 @@ export default function ComparePage() {
     },
   ];
 
+  
   const parsed = players.map(({ stats }) => {
     const aggregate = stats.wins.stats.aggregate;
     const topChamps = getTopChampions(stats);
@@ -96,8 +98,16 @@ export default function ComparePage() {
 
       {/* 📊 Stats Overview comparison */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-1 p-1">
-        <StatsOverview aggregate={p1.aggregate} avgGameMinutes={p1.avgGameMinutes} />
-        <StatsOverview aggregate={p2.aggregate} avgGameMinutes={p2.avgGameMinutes} />
+        <StatsOverview
+            aggregate={p1.aggregate}
+            avgGameMinutes={p1.avgGameMinutes}
+            compareWith={p2.aggregate}
+            />
+            <StatsOverview
+            aggregate={p2.aggregate}
+            avgGameMinutes={p2.avgGameMinutes}
+            compareWith={p1.aggregate}
+            />
       </div>
 
       {/* 🧨 Multikill Comparison */}

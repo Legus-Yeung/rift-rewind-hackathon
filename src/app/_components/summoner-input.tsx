@@ -2,6 +2,7 @@
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import Link from "next/link";
 
 /**
  * Sanitizes the input by removing any whitespace and sending all characters to lowercase
@@ -57,6 +58,10 @@ export default function SummonerInput() {
             }}
           />
         </label>
+        <Link
+            href="/chat"
+            className="hover:text-[hsl(40,45%,61%)] transition-colors duration-200"
+          ></Link>
         <button
           className="rounded bg-[hsl(40,45%,61%)] px-4 py-1 text-white hover:bg-blue-400"
           onClick={handleConfirm}

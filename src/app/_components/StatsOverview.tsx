@@ -39,7 +39,7 @@ export function StatsOverview({ aggregate, avgGameMinutes }: StatsOverviewProps)
             <div
               key={index}
               className={`bg-card border border-border p-6 transition-all duration-300 hover:border-primary hover:shadow-lg hover:shadow-primary/20 ${
-                stat.highlight ? "lg:col-span-2" : ""
+                stat.highlight ? "lg:col-span-2" : "lg:col-span-2"
               }`}
             >
               <div className="text-sm text-muted-foreground uppercase tracking-wider mb-2">

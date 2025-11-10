@@ -1,20 +1,26 @@
 "use client";
 import { useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import { baseUrl } from "~/lib/api/url-utils";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Link from "next/link";
 
 /**
  * Sanitizes the input by removing any whitespace and sending all characters to lowercase
  *
- * @param input - The string to be sanitzied
+ * @param input - The string to be sanitized
  * @returns A sanitized version of the input string
  */
 function sanitizeInput(input: string): string {
   return input.toLowerCase().replaceAll(/\s+/g, "");
 }
 
-export default function SummonerInput() {
+interface SummonerInputProps {
+  /** The base route to navigate to (e.g., "summoner" or "profile") */
+  baseRoute: string;
+}
+
+export default function SummonerInput({ baseRoute }: SummonerInputProps) {
   const [gameName, setGameName] = useState<string>("");
   const [tagLine, setTagLine] = useState<string>("");
 
@@ -22,7 +28,7 @@ export default function SummonerInput() {
 
   const handleConfirm = async () => {
     router.push(
-      `summoner/${sanitizeInput(gameName)}-${sanitizeInput(tagLine)}`,
+      `${baseUrl}/${baseRoute}/${sanitizeInput(gameName)}-${sanitizeInput(tagLine)}`,
     );
   };
 
@@ -59,9 +65,9 @@ export default function SummonerInput() {
           />
         </label>
         <Link
-            href="/chat"
-            className="hover:text-[hsl(40,45%,61%)] transition-colors duration-200"
-          ></Link>
+          href="/chat"
+          className="transition-colors duration-200 hover:text-[hsl(40,45%,61%)]"
+        ></Link>
         <button
           className="rounded bg-[hsl(40,45%,61%)] px-4 py-1 text-white hover:bg-blue-400"
           onClick={handleConfirm}

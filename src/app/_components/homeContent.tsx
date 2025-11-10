@@ -1,5 +1,5 @@
 "use client"; // this is now a client component
-import SummonerInput from "../_components/summoner-input";
+import SummonerInput from "./summonerInput";
 import { useEffect, useState } from "react";
 
 export default function HomeContent() {
@@ -19,7 +19,7 @@ export default function HomeContent() {
       <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
         Rift <span>Rewind</span>
       </h1>
-      <SummonerInput />
+      <SummonerInput baseRoute={`summoner`}></SummonerInput>
     </div>
   );
 }

@@ -22,7 +22,7 @@ import { VisionControlSection } from "../../_components/VisionControlSection";
 import { KDATrendSection } from "../../_components/KDATrendSection";
 import { ObjectiveControlSection } from "../../_components/ObjectiveControlSection";
 import { TimePlayedSection } from "../../_components/TimePlayedSection";
-import SummonerInput from "~/app/_components/summoner-input";
+import SummonerInput from "~/app/_components/summonerInput";
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState("overview");
@@ -43,7 +43,7 @@ export default function Index() {
 
   // Summoner info
   const summonerName = "Dogmaster";
-  const tagLine = "#Treat";
+  const tagLine = "Treat";
   const profileIcon =
     "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
 
@@ -69,16 +69,13 @@ export default function Index() {
       <div>
         <HeroSection
           summonerName={summonerName}
-          tagLine={tagLine}
+          tagLine={`#${tagLine}`}
           profileIcon={profileIcon}
           topChampion={topChampion}
           hoursPlayed={hoursPlayed}
           avgGameMinutes={avgGameMinutes}
           totalGames={aggregate.games}
         />
-        <div className="absolute top-15 right-6 z-20">
-          <SummonerInput />
-        </div>
         <StatsOverview aggregate={aggregate} avgGameMinutes={avgGameMinutes} />
 
         <MultikillSection
@@ -126,9 +123,9 @@ export default function Index() {
         {/* Footer */}
         <footer className="bg-card/50 border-primary/30 border-t-2 py-8">
           <div className="container mx-auto px-4 text-center">
-            <p className="text-muted-foreground text-sm">
-              Idk what to put here
-            </p>
+            <SummonerInput
+              baseRoute={`summoner/${summonerName}-${tagLine}`}
+            ></SummonerInput>
           </div>
         </footer>
       </div>

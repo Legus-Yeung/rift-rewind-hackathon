@@ -1,63 +1,27 @@
-type StatsData = {
-  wins: {
-    stats: {
-      aggregate: {
-        visionScore: number;
-        wardsPlaced: number;
-        wardsKilled: number;
-        detectorWardsPlaced: number;
-        games: number;
-      };
-    };
-    champion: {
-      [key: string]: {
-        stats: {
-          aggregate: {
-            kills: number;
-            deaths: number;
-            assists: number;
-            games: number;
-          };
-        };
-        position?: {
-          [key: string]: {
-            stats: {
-              aggregate: {
-                visionScore: number;
-                wardsPlaced: number;
-                wardsKilled: number;
-                games: number;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-};
+import type { MatchEntry } from "./summoner/summoner-interface-utils";
 
-export function getPositionVisionData(data: StatsData) {
-  const positions: {
-    [key: string]: {
+export function getPositionVisionData(data: MatchEntry) {
+  const positions: Record<
+    string,
+    {
       visionScore: number;
       wardsPlaced: number;
       wardsKilled: number;
       games: number;
-    };
-  } = {};
+    }
+  > = {};
 
   Object.values(data.wins.champion || {}).forEach((champData) => {
     Object.entries(champData.position || {}).forEach(([position, posData]) => {
-      const { visionScore, wardsPlaced, wardsKilled, games } = posData.stats.aggregate;
+      const { visionScore, wardsPlaced, wardsKilled, games } =
+        posData.stats.aggregate;
 
-      if (!positions[position]) {
-        positions[position] = {
-          visionScore: 0,
-          wardsPlaced: 0,
-          wardsKilled: 0,
-          games: 0,
-        };
-      }
+      positions[position] ??= {
+        visionScore: 0,
+        wardsPlaced: 0,
+        wardsKilled: 0,
+        games: 0,
+      };
 
       positions[position].visionScore += visionScore;
       positions[position].wardsPlaced += wardsPlaced;
@@ -72,7 +36,7 @@ export function getPositionVisionData(data: StatsData) {
   }));
 }
 
-export function getChampionKDAData(data: StatsData) {
+export function getChampionKDAData(data: MatchEntry) {
   return Object.entries(data.wins.champion || {}).map(([name, stats]) => {
     const { kills, deaths, assists, games } = stats.stats.aggregate;
     return {

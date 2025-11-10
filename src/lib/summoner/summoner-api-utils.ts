@@ -88,7 +88,7 @@ function parseAggregateStats(
     stats[key] = (participant.challenges[key as keyof ChallengesDto] ??
       0) as number;
   }
-  stats["games"] = 1;
+  stats.games = 1;
   return stats;
 }
 
@@ -163,11 +163,11 @@ function updateMinStats(stats: MinMaxStats, delta: Partial<MinMaxStats>): void {
       if (current === 0 && change === 0) continue;
       // If current is 0, take change; if change is 0, keep current; otherwise, take min
       if (current === 0) {
-        stats[key] = change as MinMaxStats[typeof key];
+        stats[key] = change;
       } else if (change === 0) {
         // keep current (already is)
       } else {
-        stats[key] = Math.min(current, change) as MinMaxStats[typeof key];
+        stats[key] = Math.min(current, change);
       }
     }
   }
@@ -458,9 +458,7 @@ export function getItemCounts(
       const itemId = event.itemId;
       if (!itemId) continue;
 
-      if (!itemCounts[itemId]) {
-        itemCounts[itemId] = createItemStats();
-      }
+      itemCounts[itemId] ??= createItemStats();
 
       switch (event.type) {
         case "ITEM_PURCHASED":

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -11,7 +10,7 @@ import {
   getBestMatch,
   getTotalTimePlayed,
   getTopChampionsByTimePlayed,
-} from "src/lib/summoner-data";
+} from "src/lib/summoner/summoner-page-utils";
 import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
 import { HeroSection } from "../../_components/HeroSection";
@@ -25,13 +24,10 @@ import { ObjectiveControlSection } from "../../_components/ObjectiveControlSecti
 import { TimePlayedSection } from "../../_components/TimePlayedSection";
 import SummonerInput from "~/app/_components/summoner-input";
 
-
 export default function Index() {
   const [activeSection, setActiveSection] = useState("overview");
 
   const aggregate = stats.wins.stats.aggregate;
-
-  
 
   // Derived stats
   const topChamps = getTopChampions(stats);
@@ -51,7 +47,7 @@ export default function Index() {
   const profileIcon =
     "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
 
-  const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") || "Aatrox";
+  const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") ?? "Aatrox";
 
   const handleSectionClick = (section: string) => {
     setActiveSection(section);

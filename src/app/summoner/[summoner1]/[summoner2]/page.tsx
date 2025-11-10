@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -12,7 +11,7 @@ import {
   getBestMatch,
   getTotalTimePlayed,
   getTopChampionsByTimePlayed,
-} from "src/lib/summoner-data";
+} from "src/lib/summoner/summoner-page-utils";
 import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
 import { HeroSection } from "../../../_components/HeroSection";
@@ -25,26 +24,53 @@ import { KDATrendSection } from "../../../_components/KDATrendSection";
 import { ObjectiveControlSection } from "../../../_components/ObjectiveControlSection";
 import { TimePlayedSection } from "../../../_components/TimePlayedSection";
 import { CompareValue } from "~/app/_components/compareValue";
+import type {
+  AggregateStats,
+  MatchEntry,
+} from "~/lib/summoner/summoner-interface-utils";
+
+type PlayerInfo = {
+  name: string;
+  tag: string;
+  profileIcon: string;
+  stats: MatchEntry;
+};
+
+type ParsedStats = {
+  aggregate: AggregateStats;
+  topChamps: ReturnType<typeof getTopChampions>;
+  bestMatchups: ReturnType<typeof getBestMatchups>;
+  bestPosition: ReturnType<typeof getBestPosition>;
+  bestMatch: ReturnType<typeof getBestMatch>;
+  totalTime: ReturnType<typeof getTotalTimePlayed>;
+  topTimeChamps: ReturnType<typeof getTopChampionsByTimePlayed>;
+  positionVisionData: ReturnType<typeof getPositionVisionData>;
+  championKDAs: ReturnType<typeof getChampionKDAData>;
+  hoursPlayed: number;
+  avgGameMinutes: number;
+};
 
 export default function ComparePage() {
-  // 🎯 Parse both players
-  const players = [
+  // 🎯 Define players
+  const players: PlayerInfo[] = [
     {
       name: "Dogmaster",
       tag: "#Treat",
-      profileIcon: "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png",
-      stats: stats1,
+      profileIcon:
+        "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png",
+      stats: stats1 as MatchEntry,
     },
     {
       name: "Sinister",
       tag: "#0005",
-      profileIcon: "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/7.png",
-      stats: stats2,
+      profileIcon:
+        "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/7.png",
+      stats: stats2 as MatchEntry,
     },
   ];
 
-  
-  const parsed = players.map(({ stats }) => {
+  // 🧩 Derive parsed stats
+  const parsed: ParsedStats[] = players.map(({ stats }) => {
     const aggregate = stats.wins.stats.aggregate;
     const topChamps = getTopChampions(stats);
     const bestMatchups = getBestMatchups(stats, 3);
@@ -73,15 +99,19 @@ export default function ComparePage() {
   const [p1, p2] = parsed;
   const [summ1, summ2] = players;
 
+  if (!p1 || !p2 || !summ1 || !summ2) {
+    throw new Error("Could not get summoner data properly");
+  }
+
   return (
     <main className="bg-background min-h-screen">
       {/* 🧭 Hero Sections (side by side) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+      <div className="grid grid-cols-1 gap-8 p-6 md:grid-cols-2">
         <HeroSection
           summonerName={summ1.name}
           tagLine={summ1.tag}
           profileIcon={summ1.profileIcon}
-          topChampion={p1.topChamps[0]?.name || "Aatrox"}
+          topChampion={p1.topChamps[0]?.name ?? "Aatrox"}
           hoursPlayed={p1.hoursPlayed}
           avgGameMinutes={p1.avgGameMinutes}
           totalGames={p1.aggregate.games}
@@ -90,7 +120,7 @@ export default function ComparePage() {
           summonerName={summ2.name}
           tagLine={summ2.tag}
           profileIcon={summ2.profileIcon}
-          topChampion={p2.topChamps[0]?.name || "Aatrox"}
+          topChampion={p2.topChamps[0]?.name ?? "Aatrox"}
           hoursPlayed={p2.hoursPlayed}
           avgGameMinutes={p2.avgGameMinutes}
           totalGames={p2.aggregate.games}
@@ -98,22 +128,21 @@ export default function ComparePage() {
       </div>
 
       {/* 📊 Stats Overview comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1 p-1">
+      <div className="grid grid-cols-1 gap-1 p-1 md:grid-cols-2">
         <StatsOverview
-            aggregate={p1.aggregate}
-            avgGameMinutes={p1.avgGameMinutes}
-            compareWith={p2.aggregate}
-            />
-            <StatsOverview
-            aggregate={p2.aggregate}
-            avgGameMinutes={p2.avgGameMinutes}
-            compareWith={p1.aggregate}
-            />
+          aggregate={p1.aggregate}
+          avgGameMinutes={p1.avgGameMinutes}
+          compareWith={p2.aggregate}
+        />
+        <StatsOverview
+          aggregate={p2.aggregate}
+          avgGameMinutes={p2.avgGameMinutes}
+          compareWith={p1.aggregate}
+        />
       </div>
 
       {/* 🧨 Multikill Comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-        
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <MultikillSection
           doubleKills={p1.aggregate.doubleKills}
           tripleKills={p1.aggregate.tripleKills}
@@ -129,13 +158,13 @@ export default function ComparePage() {
       </div>
 
       {/* ⚔️ Champion Comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <ChampionsSection champions={p1.topChamps} />
         <ChampionsSection champions={p2.topChamps} />
       </div>
 
       {/* 💥 Matchups */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <MatchupsSection
           bestMatchups={p1.bestMatchups}
           bestPosition={p1.bestPosition}
@@ -149,7 +178,7 @@ export default function ComparePage() {
       </div>
 
       {/* 👁 Vision */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <VisionControlSection
           totalVisionScore={p1.aggregate.visionScore}
           totalWardsPlaced={p1.aggregate.wardsPlaced}
@@ -169,13 +198,13 @@ export default function ComparePage() {
       </div>
 
       {/* 📈 KDA Trends */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <KDATrendSection championKDAs={p1.championKDAs} />
         <KDATrendSection championKDAs={p2.championKDAs} />
       </div>
 
       {/* 🎯 Objective Control */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <ObjectiveControlSection
           baronTakedowns={p1.aggregate.baronTakedowns}
           dragonTakedowns={p1.aggregate.dragonTakedowns}
@@ -197,7 +226,7 @@ export default function ComparePage() {
       </div>
 
       {/* ⏱ Time Played */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
         <TimePlayedSection
           topTimeChamps={p1.topTimeChamps}
           hoursPlayed={p1.hoursPlayed}
@@ -211,7 +240,7 @@ export default function ComparePage() {
       </div>
 
       {/* ⚡ Footer */}
-      <footer className="bg-card/50 border-primary/30 border-t-2 py-8 mt-12">
+      <footer className="bg-card/50 border-primary/30 mt-12 border-t-2 py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
             Summoner Wrapped • Comparison Mode

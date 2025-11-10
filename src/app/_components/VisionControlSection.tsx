@@ -44,7 +44,7 @@ export function VisionControlSection({
       MIDDLE: "MID",
       BOTTOM: "BOT",
     };
-    return map[pos.toUpperCase()] || pos;
+    return map[pos.toUpperCase()] ?? pos;
   };
 
   // Helper: Color by role (consistent with display name)
@@ -57,7 +57,7 @@ export function VisionControlSection({
       BOT: "hsl(25, 35%, 45%)",
       SUPPORT: "hsl(40, 45%, 61%)",
     };
-    return colors[normalized] || "hsl(0, 70%, 45%)";
+    return colors[normalized] ?? "hsl(0, 70%, 45%)";
   };
 
   // Derived stats
@@ -77,89 +77,111 @@ export function VisionControlSection({
     .sort((a, b) => b.visionScore - a.visionScore);
 
   return (
-    <section id="vision" className="py-16 bg-card/30">
+    <section id="vision" className="bg-card/30 py-16">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <Eye className="w-8 h-8 text-primary" />
-            <h2 className="text-3xl font-bold text-foreground uppercase tracking-wide">
+            <Eye className="text-primary h-8 w-8" />
+            <h2 className="text-foreground text-3xl font-bold tracking-wide uppercase">
               Vision Control
             </h2>
           </div>
-          <div className="w-20 h-1 bg-primary mt-2"></div>
+          <div className="bg-primary mt-2 h-1 w-20"></div>
         </div>
 
         {/* Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-card border-2 border-border p-6 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20">
-            <div className="flex items-center gap-3 mb-3">
-              <Image src={"https://ddragon.leagueoflegends.com/cdn/15.20.1/img/item/3340.png"}
+        <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-6 transition-all hover:shadow-lg">
+            <div className="mb-3 flex items-center gap-3">
+              <Image
+                src={
+                  "https://ddragon.leagueoflegends.com/cdn/15.20.1/img/item/3340.png"
+                }
                 alt={"ward"}
                 width={40}
-                height={40}/>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                height={40}
+              />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
                 Avg Vision Score
               </p>
             </div>
-            <p className="text-4xl font-bold text-primary">{avgVisionScore}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-primary text-4xl font-bold">{avgVisionScore}</p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Total: {totalVisionScore.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-card border-2 border-border p-6 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20">
-            <div className="flex items-center gap-3 mb-3">
-              <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/b/b7/Need_Vision_ping.png/revision/latest/scale-to-width-down/128?cb=20221118214211"}
+          <div className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-6 transition-all hover:shadow-lg">
+            <div className="mb-3 flex items-center gap-3">
+              <Image
+                src={
+                  "https://static.wikia.nocookie.net/leagueoflegends/images/b/b7/Need_Vision_ping.png/revision/latest/scale-to-width-down/128?cb=20221118214211"
+                }
                 alt={"need vision ping"}
                 width={40}
-                height={40}/>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                height={40}
+              />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
                 Avg Wards Placed
               </p>
             </div>
-            <p className="text-4xl font-bold text-noxus-gold">{avgWardsPlaced}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-noxus-gold text-4xl font-bold">
+              {avgWardsPlaced}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Total: {totalWardsPlaced.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-card border-2 border-border p-6 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20">
-            <div className="flex items-center gap-3 mb-3">
-              <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/a/ab/Enemy_Vision_ping.png/revision/latest/scale-to-width-down/128?cb=20221118235903"}
+          <div className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-6 transition-all hover:shadow-lg">
+            <div className="mb-3 flex items-center gap-3">
+              <Image
+                src={
+                  "https://static.wikia.nocookie.net/leagueoflegends/images/a/ab/Enemy_Vision_ping.png/revision/latest/scale-to-width-down/128?cb=20221118235903"
+                }
                 alt={"enemy vision ping"}
                 width={40}
-                height={40}/>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                height={40}
+              />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
                 Avg Wards Killed
               </p>
             </div>
-            <p className="text-4xl font-bold text-noxus-red">{avgWardsKilled}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-noxus-red text-4xl font-bold">
+              {avgWardsKilled}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Total: {totalWardsKilled.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-card border-2 border-border p-6 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20">
-            <div className="flex items-center gap-3 mb-3">
-              <Image src={"https://ddragon.leagueoflegends.com/cdn/15.20.1/img/item/2055.png"}
+          <div className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-6 transition-all hover:shadow-lg">
+            <div className="mb-3 flex items-center gap-3">
+              <Image
+                src={
+                  "https://ddragon.leagueoflegends.com/cdn/15.20.1/img/item/2055.png"
+                }
                 alt={"control ward"}
                 width={40}
-                height={40}/>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">
+                height={40}
+              />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
                 Control Wards
               </p>
             </div>
-            <p className="text-4xl font-bold text-primary">{totalDetectorWards}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-primary text-4xl font-bold">
+              {totalDetectorWards}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Efficiency: {wardKillRate}%
             </p>
           </div>
         </div>
 
         {/* Vision Score by Position */}
-        <div className="bg-card border-2 border-border p-6 mb-8">
-          <h3 className="text-xl font-bold text-foreground mb-6 uppercase tracking-wide">
+        <div className="bg-card border-border mb-8 border-2 p-6">
+          <h3 className="text-foreground mb-6 text-xl font-bold tracking-wide uppercase">
             Vision Score by Position
           </h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -182,7 +204,10 @@ export function VisionControlSection({
               />
               <Bar dataKey="visionScore" radius={[8, 8, 0, 0]}>
                 {positionChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getPositionColor(entry.name)} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={getPositionColor(entry.name)}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -190,40 +215,48 @@ export function VisionControlSection({
         </div>
 
         {/* Detailed Position Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
           {positionVisionData.map((pos) => {
             const displayName = displayPositionName(pos.position);
             return (
               <div
                 key={pos.position}
-                className="bg-card border-2 border-border p-5 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20"
+                className="bg-card border-border hover:border-primary hover:shadow-primary/20 border-2 p-5 transition-all hover:shadow-lg"
               >
                 <div className="mb-4">
                   <h4
-                    className="text-lg font-bold uppercase tracking-wide mb-1"
+                    className="mb-1 text-lg font-bold tracking-wide uppercase"
                     style={{ color: getPositionColor(pos.position) }}
                   >
                     {displayName}
                   </h4>
-                  <p className="text-xs text-muted-foreground">{pos.games} games</p>
+                  <p className="text-muted-foreground text-xs">
+                    {pos.games} games
+                  </p>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Vision Score</span>
-                    <span className="text-lg font-bold text-primary">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Vision Score
+                    </span>
+                    <span className="text-primary text-lg font-bold">
                       {(pos.visionScore / pos.games).toFixed(1)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Wards Placed</span>
-                    <span className="text-lg font-bold text-noxus-gold">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Wards Placed
+                    </span>
+                    <span className="text-noxus-gold text-lg font-bold">
                       {(pos.wardsPlaced / pos.games).toFixed(1)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Wards Killed</span>
-                    <span className="text-lg font-bold text-noxus-red">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Wards Killed
+                    </span>
+                    <span className="text-noxus-red text-lg font-bold">
                       {(pos.wardsKilled / pos.games).toFixed(1)}
                     </span>
                   </div>

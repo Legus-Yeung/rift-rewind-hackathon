@@ -22,6 +22,7 @@ import { VisionControlSection } from "../../_components/VisionControlSection";
 import { KDATrendSection } from "../../_components/KDATrendSection";
 import { ObjectiveControlSection } from "../../_components/ObjectiveControlSection";
 import { TimePlayedSection } from "../../_components/TimePlayedSection";
+import SummonerInput from "~/app/_components/summoner-input";
 
 
 export default function Index() {
@@ -78,6 +79,9 @@ export default function Index() {
           avgGameMinutes={avgGameMinutes}
           totalGames={aggregate.games}
         />
+        <div className="absolute top-15 right-6 z-20">
+          <SummonerInput />
+        </div>
         <StatsOverview aggregate={aggregate} avgGameMinutes={avgGameMinutes} />
 
         <MultikillSection

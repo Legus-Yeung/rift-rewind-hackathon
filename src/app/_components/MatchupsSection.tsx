@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 
@@ -33,7 +35,7 @@ export function MatchupsSection({
   bestMatch,
 }: MatchupsSectionProps) {
   return (
-    <section id="matchups" className="py-16 bg-card/30">
+    <section id="matchups" className="bg-card/30 py-16">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-foreground text-3xl font-bold tracking-wide uppercase">

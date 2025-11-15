@@ -8,8 +8,10 @@ import {
   parseRiotName,
   analyzeAccount,
   fetchInsights,
+  combineAggregates,
+  getPositionVisionData,
+  getChampionKDAData,
 } from "src/lib/summoner/summoner-page-utils";
-import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
 import { HeroSection } from "../../_components/HeroSection";
 import { StatsOverview } from "../../_components/StatsOverview";
@@ -22,6 +24,7 @@ import { ObjectiveControlSection } from "../../_components/ObjectiveControlSecti
 import { TimePlayedSection } from "../../_components/TimePlayedSection";
 import SummonerInput from "~/app/_components/summonerInput";
 import SocialLink from "~/app/_components/socialLink";
+import type { AggregateStats } from "~/lib/summoner/summoner-interface-utils";
 
 export default async function Index({
   params,
@@ -38,7 +41,10 @@ export default async function Index({
   const stats = await analyzeAccount(summonerName, tagLine, false);
   const insightParagraphs = { first: "", second: "", third: "" };
 
-  const aggregate = stats.wins.stats.aggregate;
+  const winAgg: AggregateStats = stats.wins.stats.aggregate;
+  const lossAgg: AggregateStats = stats.losses.stats.aggregate;
+
+  const aggregate: AggregateStats = combineAggregates(winAgg, lossAgg);
   const topChamps = getTopChampions(stats);
   const bestMatchups = getBestMatchups(stats, 3);
   const bestPosition = getBestPosition(stats);

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Sword, Flame, Sparkles, Trophy } from "lucide-react";
 import Image from "next/image";
@@ -29,60 +31,69 @@ export function MultikillSection({
     {
       label: "Double Kills",
       value: doubleKills,
-      icon: <Image
-        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/1036.png`}
-        alt="Double Kill"
-        width={48}
-        height={48}
-        className="rounded-md"
-      />,
+      icon: (
+        <Image
+          src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/1036.png`}
+          alt="Double Kill"
+          width={48}
+          height={48}
+          className="rounded-md"
+        />
+      ),
       rarity: "common",
       description: "Two enemies eliminated in quick succession",
     },
     {
       label: "Triple Kills",
       value: tripleKills,
-      icon: <Image
-        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3134.png`}
-        alt="Triple Kill"
-        width={48}
-        height={48}
-        className="rounded-md"
-      />,
+      icon: (
+        <Image
+          src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3134.png`}
+          alt="Triple Kill"
+          width={48}
+          height={48}
+          className="rounded-md"
+        />
+      ),
       rarity: "uncommon",
       description: "Three enemies eliminated in quick succession",
     },
     {
       label: "Quadra Kills",
       value: quadraKills,
-      icon: <Image
-        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3031.png`}
-        alt="Quadra Kill"
-        width={48}
-        height={48}
-        className="rounded-md"
-      />,
+      icon: (
+        <Image
+          src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3031.png`}
+          alt="Quadra Kill"
+          width={48}
+          height={48}
+          className="rounded-md"
+        />
+      ),
       rarity: "rare",
       description: "Four enemies eliminated in quick succession",
     },
     {
       label: "Penta Kills",
       value: pentaKills,
-      icon: <Image
-        src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3072.png`}
-        alt="Penta Kill"
-        width={48}
-        height={48}
-        className="rounded-md"
-      />,
+      icon: (
+        <Image
+          src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3072.png`}
+          alt="Penta Kill"
+          width={48}
+          height={48}
+          className="rounded-md"
+        />
+      ),
       rarity: "legendary",
       description: "All five enemies eliminated in quick succession",
     },
   ];
 
   const getRarityStyles = (rarity: string, value: number) => {
-    const baseStyles = "relative bg-card border-2 p-6 transition-all duration-300 group";
-    
+    const baseStyles =
+      "relative bg-card border-2 p-6 transition-all duration-300 group";
+
     if (value === 0) {
       return `${baseStyles} border-border/30 opacity-60`;
     }
@@ -103,7 +114,7 @@ export function MultikillSection({
 
   const getRarityTextColor = (rarity: string, value: number) => {
     if (value === 0) return "text-muted-foreground";
-    
+
     switch (rarity) {
       case "common":
         return "text-foreground";
@@ -126,23 +137,29 @@ export function MultikillSection({
         <div className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <Image src={"https://static.wikia.nocookie.net/leagueoflegends/images/3/38/Noxus_Crest_icon.png/revision/latest?cb=20161117055828"}
+              <Image
+                src={
+                  "https://static.wikia.nocookie.net/leagueoflegends/images/3/38/Noxus_Crest_icon.png/revision/latest?cb=20161117055828"
+                }
                 alt={"Noxus Axe"}
                 width={40}
-                height={40}/>
-              <h2 className="text-3xl font-bold text-foreground uppercase tracking-wide">
+                height={40}
+              />
+              <h2 className="text-foreground text-3xl font-bold tracking-wide uppercase">
                 Multikill Achievements
               </h2>
             </div>
-            <div className="w-20 h-1 bg-primary mt-2"></div>
+            <div className="bg-primary mt-2 h-1 w-20"></div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider">Total Multikills</p>
-            <p className="text-4xl font-bold text-primary">{totalMultikills}</p>
+            <p className="text-muted-foreground text-sm tracking-wider uppercase">
+              Total Multikills
+            </p>
+            <p className="text-primary text-4xl font-bold">{totalMultikills}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {multikills.map((multikill, index) => (
             <div
               key={multikill.label}
@@ -152,43 +169,51 @@ export function MultikillSection({
               }}
             >
               {multikill.value > 0 && multikill.rarity === "legendary" && (
-                <div className="absolute -top-3 -right-3 bg-noxus-gold text-noxus-black px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full shadow-lg animate-pulse">
+                <div className="bg-noxus-gold text-noxus-black absolute -top-3 -right-3 animate-pulse rounded-full px-3 py-1 text-xs font-bold tracking-wider uppercase shadow-lg">
                   Legendary!
                 </div>
               )}
-              {multikill.value > 0 && multikill.rarity === "rare" && multikill.value >= 3 && (
-                <div className="absolute -top-3 -right-3 bg-noxus-red text-white px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full shadow-lg">
-                  Rare!
-                </div>
-              )}
+              {multikill.value > 0 &&
+                multikill.rarity === "rare" &&
+                multikill.value >= 3 && (
+                  <div className="bg-noxus-red absolute -top-3 -right-3 rounded-full px-3 py-1 text-xs font-bold tracking-wider text-white uppercase shadow-lg">
+                    Rare!
+                  </div>
+                )}
 
-              <div className={`mb-4 ${getRarityTextColor(multikill.rarity, multikill.value)} group-hover:scale-110 transition-transform duration-300`}>
+              <div
+                className={`mb-4 ${getRarityTextColor(multikill.rarity, multikill.value)} transition-transform duration-300 group-hover:scale-110`}
+              >
                 {multikill.icon}
               </div>
 
-              <h3 className="text-xl font-bold text-foreground mb-1">
+              <h3 className="text-foreground mb-1 text-xl font-bold">
                 {multikill.label}
               </h3>
-              
-              <p className="text-xs text-muted-foreground mb-4 min-h-[2.5rem]">
+
+              <p className="text-muted-foreground mb-4 min-h-[2.5rem] text-xs">
                 {multikill.description}
               </p>
 
-              <div className="mt-auto pt-4 border-t border-border">
+              <div className="border-border mt-auto border-t pt-4">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-sm text-muted-foreground uppercase tracking-wide">
+                  <span className="text-muted-foreground text-sm tracking-wide uppercase">
                     Count
                   </span>
-                  <span className={`text-4xl font-bold ${getRarityTextColor(multikill.rarity, multikill.value)}`}>
+                  <span
+                    className={`text-4xl font-bold ${getRarityTextColor(multikill.rarity, multikill.value)}`}
+                  >
                     {multikill.value}
                   </span>
                 </div>
               </div>
 
               {multikill.value === 0 && (
-                <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] flex items-center justify-center rounded">
+                <div className="bg-background/50 absolute inset-0 flex items-center justify-center rounded backdrop-blur-[1px]">
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground font-semibold">Not Yet Achieved</p>
+                    <p className="text-muted-foreground text-sm font-semibold">
+                      Not Yet Achieved
+                    </p>
                   </div>
                 </div>
               )}
@@ -196,40 +221,51 @@ export function MultikillSection({
           ))}
         </div>
 
-        <div className="mt-8 bg-card/30 border border-border p-6 rounded">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="bg-card/30 border-border mt-8 rounded border p-6">
+          <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-4">
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              <p className="text-muted-foreground mb-1 text-sm tracking-wider uppercase">
                 Most Common
               </p>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-primary text-2xl font-bold">
                 {doubleKills > 0 ? "Double Kill" : "None"}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              <p className="text-muted-foreground mb-1 text-sm tracking-wider uppercase">
                 Rarest Achievement
               </p>
-              <p className="text-2xl font-bold text-noxus-gold">
-                {pentaKills > 0 ? "Penta Kill" : quadraKills > 0 ? "Quadra Kill" : tripleKills > 0 ? "Triple Kill" : "Double Kill"}
+              <p className="text-noxus-gold text-2xl font-bold">
+                {pentaKills > 0
+                  ? "Penta Kill"
+                  : quadraKills > 0
+                    ? "Quadra Kill"
+                    : tripleKills > 0
+                      ? "Triple Kill"
+                      : "Double Kill"}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              <p className="text-muted-foreground mb-1 text-sm tracking-wider uppercase">
                 Total Eliminations
               </p>
-              <p className="text-2xl font-bold text-primary">
-                {doubleKills * 2 + tripleKills * 3 + quadraKills * 4 + pentaKills * 5}
+              <p className="text-primary text-2xl font-bold">
+                {doubleKills * 2 +
+                  tripleKills * 3 +
+                  quadraKills * 4 +
+                  pentaKills * 5}
               </p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              <p className="text-muted-foreground mb-1 text-sm tracking-wider uppercase">
                 Achievement Rate
               </p>
-              <p className="text-2xl font-bold text-primary">
-                {totalMultikills > 0 ? `${((tripleKills + quadraKills + pentaKills) / totalMultikills * 100).toFixed(0)}%` : "0%"}
+              <p className="text-primary text-2xl font-bold">
+                {totalMultikills > 0
+                  ? `${(((tripleKills + quadraKills + pentaKills) / totalMultikills) * 100).toFixed(0)}%`
+                  : "0%"}
               </p>
-              <p className="text-xs text-muted-foreground">Triple+ Rate</p>
+              <p className="text-muted-foreground text-xs">Triple+ Rate</p>
             </div>
           </div>
         </div>

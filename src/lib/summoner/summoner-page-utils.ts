@@ -1,5 +1,9 @@
 import type { RiotPosition } from "../riot/enums/riot-position";
-import type { MatchEntry } from "./summoner-interface-utils";
+import {
+  AGGREGATE_FIELDS,
+  type AggregateStats,
+  type MatchEntry,
+} from "./summoner-interface-utils";
 import { baseUrl } from "../api/url-utils";
 
 export async function analyzeAccount(
@@ -153,6 +157,19 @@ export async function getChampionInGameName(
   }
 }
 
+export function combineAggregates(
+  wins: AggregateStats | undefined,
+  losses: AggregateStats | undefined,
+): AggregateStats {
+  const result = {} as AggregateStats;
+
+  for (const field of AGGREGATE_FIELDS) {
+    result[field] = (wins?.[field] ?? 0) + (losses?.[field] ?? 0);
+  }
+
+  return result;
+}
+
 type ChampionStat = {
   name: string;
   games: number;
@@ -175,53 +192,89 @@ type PositionStat = {
 };
 
 export function getTopChampions(data: MatchEntry): ChampionStat[] {
-  const champions = Object.entries(data.wins.champion || {}).map(
-    ([name, stats]) => {
-      const { kills, deaths, assists, games } = stats.stats.aggregate;
-      return {
-        name,
-        games,
-        kda: (kills + assists) / Math.max(1, deaths),
-      };
-    },
-  );
+  const champions = [
+    ...Object.entries(data.wins.champion || {}),
+    ...Object.entries(data.losses.champion || {}),
+  ].map(([name, stats]) => {
+    const { kills, deaths, assists, games } = stats.stats.aggregate;
+    return {
+      name,
+      games,
+      kda: (kills + assists) / Math.max(1, deaths),
+    };
+  });
 
   return champions.sort((a, b) => b.games - a.games).slice(0, 3);
 }
 
 export function getBestMatchups(data: MatchEntry, limit = 3): Matchup[] {
-  const matchups: Matchup[] = [];
+  // Key format: "champName|position|opponent"
+  const map = new Map<
+    string,
+    {
+      playerChampion: string;
+      opponentChampion: string;
+      position: RiotPosition;
+      wins: number;
+      losses: number;
+    }
+  >();
 
-  Object.entries(data.wins.champion || {}).forEach(([champName, champData]) => {
-    Object.entries(champData.position || {}).forEach(
-      ([positionKey, posData]) => {
-        const position = positionKey as RiotPosition;
+  const processSide = (side: "wins" | "losses", isWin: boolean) => {
+    Object.entries(data[side].champion ?? {}).forEach(
+      ([champName, champData]) => {
+        Object.entries(champData.position ?? {}).forEach(
+          ([positionKey, posData]) => {
+            const position = positionKey as RiotPosition;
 
-        Object.entries(posData.matchup || {}).forEach(
-          ([opponent, matchupData]) => {
-            const wins = matchupData.player?.aggregate?.games ?? 0;
+            Object.entries(posData.matchup ?? {}).forEach(
+              ([opponent, matchupData]) => {
+                const games = matchupData.player?.aggregate?.games ?? 0;
 
-            const losses =
-              data.losses?.champion?.[champName]?.position?.[position]
-                ?.matchup?.[opponent]?.player?.aggregate?.games ?? 0;
+                const key = `${champName}|${position}|${opponent}`;
 
-            const totalGames = wins + losses;
+                if (!map.has(key)) {
+                  map.set(key, {
+                    playerChampion: champName,
+                    opponentChampion: opponent,
+                    position,
+                    wins: 0,
+                    losses: 0,
+                  });
+                }
 
-            if (totalGames >= 3) {
-              matchups.push({
-                playerChampion: champName,
-                opponentChampion: opponent,
-                position,
-                wins,
-                games: totalGames,
-                winrate: wins / totalGames,
-              });
-            }
+                const entry = map.get(key)!;
+
+                if (isWin) entry.wins += games;
+                else entry.losses += games;
+              },
+            );
           },
         );
       },
     );
-  });
+  };
+
+  // Process wins and losses
+  processSide("wins", true);
+  processSide("losses", false);
+
+  // Convert map to final matchup array
+  const matchups: Matchup[] = [];
+  for (const entry of map.values()) {
+    const totalGames = entry.wins + entry.losses;
+
+    if (totalGames >= 1) {
+      matchups.push({
+        playerChampion: entry.playerChampion,
+        opponentChampion: entry.opponentChampion,
+        position: entry.position,
+        wins: entry.wins,
+        games: totalGames,
+        winrate: entry.wins / totalGames,
+      });
+    }
+  }
 
   return matchups.sort((a, b) => b.winrate - a.winrate).slice(0, limit);
 }
@@ -237,7 +290,10 @@ export function getBestPosition(data: MatchEntry): PositionStat | null {
     }
   > = {};
 
-  Object.values(data.wins.champion || {}).forEach((champData) => {
+  [
+    ...Object.values(data.wins.champion || {}),
+    ...Object.values(data.losses.champion || {}),
+  ].forEach((champData) => {
     Object.entries(champData.position || {}).forEach(([position, posData]) => {
       const { kills, deaths, assists, games } = posData.stats.aggregate;
 
@@ -270,18 +326,19 @@ export function getBestMatch(data: MatchEntry): {
   deaths: number;
   assists: number;
 } | null {
-  const champions = Object.entries(data.wins.champion || {}).map(
-    ([name, stats]) => {
-      const { kills, deaths, assists } = stats.stats.aggregate;
-      return {
-        champion: name,
-        kills,
-        deaths,
-        assists,
-        kda: (kills + assists) / Math.max(1, deaths),
-      };
-    },
-  );
+  const champions = [
+    ...Object.entries(data.wins.champion || {}),
+    ...Object.entries(data.losses.champion || {}),
+  ].map(([name, stats]) => {
+    const { kills, deaths, assists } = stats.stats.aggregate;
+    return {
+      champion: name,
+      kills,
+      deaths,
+      assists,
+      kda: (kills + assists) / Math.max(1, deaths),
+    };
+  });
 
   return champions.length > 0
     ? (champions.sort((a, b) => b.kda - a.kda)[0] ?? null)
@@ -289,9 +346,14 @@ export function getBestMatch(data: MatchEntry): {
 }
 
 export function getTotalTimePlayed(data: MatchEntry) {
-  const totalSeconds = data.wins.stats.aggregate.gameDuration;
+  const totalSeconds =
+    data.wins.stats.aggregate.gameDuration +
+    data.losses.stats.aggregate.gameDuration;
   const totalHours = totalSeconds / 3600;
-  const avgGameLength = totalSeconds / data.wins.stats.aggregate.games / 60;
+  const avgGameLength =
+    totalSeconds /
+    (data.wins.stats.aggregate.games + data.losses.stats.aggregate.games) /
+    60;
 
   return {
     totalHours,
@@ -300,18 +362,113 @@ export function getTotalTimePlayed(data: MatchEntry) {
 }
 
 export function getTopChampionsByTimePlayed(data: MatchEntry) {
-  const champions = Object.entries(data.wins.champion || {}).map(
-    ([name, stats]) => {
-      const { games, gameDuration } = stats.stats.aggregate;
-      return {
-        name,
-        games,
-        timePlayedHours: gameDuration / 3600,
-      };
-    },
-  );
+  const champions = [
+    ...Object.entries(data.wins.champion || {}),
+    ...Object.entries(data.losses.champion || {}),
+  ].map(([name, stats]) => {
+    const { games, gameDuration } = stats.stats.aggregate;
+    return {
+      name,
+      games,
+      timePlayedHours: gameDuration / 3600,
+    };
+  });
 
   return champions
     .sort((a, b) => b.timePlayedHours - a.timePlayedHours)
     .slice(0, 3);
+}
+
+export function getPositionVisionData(data: MatchEntry) {
+  const positions: Record<
+    string,
+    {
+      visionScore: number;
+      wardsPlaced: number;
+      wardsKilled: number;
+      games: number;
+    }
+  > = {};
+
+  function processSide(side: "wins" | "losses") {
+    Object.values(data[side].champion || {}).forEach((champData) => {
+      Object.entries(champData.position || {}).forEach(
+        ([position, posData]) => {
+          const {
+            visionScore = 0,
+            wardsPlaced = 0,
+            wardsKilled = 0,
+            games = 0,
+          } = posData.stats.aggregate;
+
+          positions[position] ??= {
+            visionScore: 0,
+            wardsPlaced: 0,
+            wardsKilled: 0,
+            games: 0,
+          };
+
+          positions[position].visionScore += visionScore;
+          positions[position].wardsPlaced += wardsPlaced;
+          positions[position].wardsKilled += wardsKilled;
+          positions[position].games += games;
+        },
+      );
+    });
+  }
+
+  // Combine wins + losses
+  processSide("wins");
+  processSide("losses");
+
+  return Object.entries(positions).map(([position, stats]) => ({
+    position,
+    ...stats,
+  }));
+}
+
+export function getChampionKDAData(data: MatchEntry) {
+  const champions: Record<
+    string,
+    {
+      kills: number;
+      deaths: number;
+      assists: number;
+      games: number;
+    }
+  > = {};
+
+  function processSide(side: "wins" | "losses") {
+    Object.entries(data[side].champion || {}).forEach(([name, champData]) => {
+      const {
+        kills = 0,
+        deaths = 0,
+        assists = 0,
+        games = 0,
+      } = champData.stats.aggregate;
+
+      champions[name] ??= {
+        kills: 0,
+        deaths: 0,
+        assists: 0,
+        games: 0,
+      };
+
+      champions[name].kills += kills;
+      champions[name].deaths += deaths;
+      champions[name].assists += assists;
+      champions[name].games += games;
+    });
+  }
+
+  // Merge both sides
+  processSide("wins");
+  processSide("losses");
+
+  // Convert back to an array and compute KDA
+  return Object.entries(champions).map(([name, stats]) => ({
+    name,
+    ...stats,
+    kda: (stats.kills + stats.assists) / Math.max(1, stats.deaths),
+  }));
 }

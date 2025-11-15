@@ -1,6 +1,18 @@
+"use client";
+
 import React from "react";
 import { TrendingUp, BarChart3 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  Cell,
+} from "recharts";
 
 interface ChampionKDA {
   name: string;
@@ -39,58 +51,71 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
 
   const bestKDA = Math.max(...topChampions.map((c) => c.kda));
   const worstKDA = Math.min(...topChampions.map((c) => c.kda));
-  const avgKDA = topChampions.reduce((sum, c) => sum + c.kda, 0) / topChampions.length;
+  const avgKDA =
+    topChampions.reduce((sum, c) => sum + c.kda, 0) / topChampions.length;
 
   return (
     <section id="kda-trend" className="py-16">
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-primary" />
-            <h2 className="text-3xl font-bold text-foreground uppercase tracking-wide">
+            <TrendingUp className="text-primary h-8 w-8" />
+            <h2 className="text-foreground text-3xl font-bold tracking-wide uppercase">
               Performance Analysis
             </h2>
           </div>
-          <div className="w-20 h-1 bg-primary mt-2"></div>
+          <div className="bg-primary mt-2 h-1 w-20"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-card border-2 border-noxus-gold p-6 transition-all duration-300 hover:shadow-xl hover:shadow-noxus-gold/30">
-            <div className="flex items-center gap-3 mb-3">
-              <TrendingUp className="w-6 h-6 text-noxus-gold" />
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">Best KDA</p>
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="bg-card border-noxus-gold hover:shadow-noxus-gold/30 border-2 p-6 transition-all duration-300 hover:shadow-xl">
+            <div className="mb-3 flex items-center gap-3">
+              <TrendingUp className="text-noxus-gold h-6 w-6" />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
+                Best KDA
+              </p>
             </div>
-            <p className="text-4xl font-bold text-noxus-gold">{bestKDA.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-noxus-gold text-4xl font-bold">
+              {bestKDA.toFixed(2)}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               {topChampions.find((c) => c.kda === bestKDA)?.name}
             </p>
           </div>
 
-          <div className="bg-card border-2 border-primary p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30">
-            <div className="flex items-center gap-3 mb-3">
-              <BarChart3 className="w-6 h-6 text-primary" />
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">Average KDA</p>
+          <div className="bg-card border-primary hover:shadow-primary/30 border-2 p-6 transition-all duration-300 hover:shadow-xl">
+            <div className="mb-3 flex items-center gap-3">
+              <BarChart3 className="text-primary h-6 w-6" />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
+                Average KDA
+              </p>
             </div>
-            <p className="text-4xl font-bold text-primary">{avgKDA.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-primary text-4xl font-bold">
+              {avgKDA.toFixed(2)}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               Across {topChampions.length} champions
             </p>
           </div>
 
-          <div className="bg-card border-2 border-border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
-            <div className="flex items-center gap-3 mb-3">
-              <BarChart3 className="w-6 h-6 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">Lowest KDA</p>
+          <div className="bg-card border-border hover:shadow-primary/20 border-2 p-6 transition-all duration-300 hover:shadow-xl">
+            <div className="mb-3 flex items-center gap-3">
+              <BarChart3 className="text-muted-foreground h-6 w-6" />
+              <p className="text-muted-foreground text-sm tracking-wider uppercase">
+                Lowest KDA
+              </p>
             </div>
-            <p className="text-4xl font-bold text-muted-foreground">{worstKDA.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-muted-foreground text-4xl font-bold">
+              {worstKDA.toFixed(2)}
+            </p>
+            <p className="text-muted-foreground mt-2 text-xs">
               {topChampions.find((c) => c.kda === worstKDA)?.name}
             </p>
           </div>
         </div>
 
-        <div className="bg-card border-2 border-border p-6 mb-8">
-          <h3 className="text-xl font-bold text-foreground mb-6 uppercase tracking-wide">
+        <div className="bg-card border-border mb-8 border-2 p-6">
+          <h3 className="text-foreground mb-6 text-xl font-bold tracking-wide uppercase">
             KDA by Champion (Top 8 Most Played)
           </h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -127,8 +152,8 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card border-2 border-border p-6">
-          <h3 className="text-xl font-bold text-foreground mb-6 uppercase tracking-wide">
+        <div className="bg-card border-border border-2 p-6">
+          <h3 className="text-foreground mb-6 text-xl font-bold tracking-wide uppercase">
             Average K/D/A per Game by Champion
           </h3>
           <ResponsiveContainer width="100%" height={400}>
@@ -156,9 +181,21 @@ export function KDATrendSection({ championKDAs }: KDATrendSectionProps) {
                 wrapperStyle={{ color: "hsl(0, 5%, 95%)", paddingTop: "20px" }}
                 iconType="circle"
               />
-              <Bar dataKey="Kills" fill="hsl(0, 70%, 45%)" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="Deaths" fill="hsl(0, 5%, 60%)" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="Assists" fill="hsl(40, 45%, 61%)" radius={[8, 8, 0, 0]} />
+              <Bar
+                dataKey="Kills"
+                fill="hsl(0, 70%, 45%)"
+                radius={[8, 8, 0, 0]}
+              />
+              <Bar
+                dataKey="Deaths"
+                fill="hsl(0, 5%, 60%)"
+                radius={[8, 8, 0, 0]}
+              />
+              <Bar
+                dataKey="Assists"
+                fill="hsl(40, 45%, 61%)"
+                radius={[8, 8, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

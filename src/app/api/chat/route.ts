@@ -1,10 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { env } from "~/env.js";
 // DEMO: Statically importing player profile for demo purposes only
 // In production, this would be dynamically fetched based on the requested summoner
-import { DOGMASTER_TREAT_PROFILE, formatPlayerProfileForPrompt } from "~/lib/demo-player-profile";
+import {
+  DOGMASTER_TREAT_PROFILE,
+  formatPlayerProfileForPrompt,
+} from "~/lib/demo-player-profile";
 
 interface BedrockMessage {
   role: "system" | "user" | "assistant";
@@ -30,7 +36,7 @@ interface ChatRequest {
   question: string;
 }
 
-const client = new BedrockRuntimeClient({ 
+const client = new BedrockRuntimeClient({
   region: env.AWS_REGION,
   credentials: {
     accessKeyId: env.AWS_ACCESS_KEY_ID,
@@ -40,7 +46,7 @@ const client = new BedrockRuntimeClient({
 
 export async function POST(req: NextRequest) {
   try {
-    const requestBody = await req.json() as ChatRequest;
+    const requestBody = (await req.json()) as ChatRequest;
     const { question } = requestBody;
 
     const modelId = "qwen.qwen3-coder-30b-a3b-v1:0";
@@ -183,11 +189,11 @@ After comparing wins vs losses, identify the **top 2-3 factors** that most stron
 
     const bedrockBody: BedrockRequestBody = {
       messages: [
-        { 
-          role: "system", 
-          content: system_prompt, 
+        {
+          role: "system",
+          content: system_prompt,
         },
-        { role: "user", content: question }
+        { role: "user", content: question },
       ],
       max_tokens: 512,
     };
@@ -213,7 +219,8 @@ After comparing wins vs losses, identify the **top 2-3 factors** that most stron
     });
   } catch (err: unknown) {
     console.error("Error invoking Bedrock:", err);
-    const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+    const errorMessage =
+      err instanceof Error ? err.message : "Unknown error occurred";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

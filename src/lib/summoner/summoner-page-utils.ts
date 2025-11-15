@@ -1,14 +1,14 @@
 import type { RiotPosition } from "../riot/enums/riot-position";
 import type { MatchEntry } from "./summoner-interface-utils";
+import { baseUrl } from "../api/url-utils";
 
-/*
 export async function analyzeAccount(
   gameName: string,
   tagLine: string,
   save = true,
 ): Promise<MatchEntry> {
   const params = new URLSearchParams({ gameName, tagLine, save: String(save) });
-  const response = await fetch(`/api/analyze?${params.toString()}`, {
+  const response = await fetch(`${baseUrl}/api/summoner?${params.toString()}`, {
     method: "POST",
   });
 
@@ -39,14 +39,80 @@ export async function analyzeAccount(
       throw new Error(result.error?.message ?? "Unknown server error");
     }
 
-    console.log("Success:", result.data);
     return result.data as MatchEntry;
   } catch (err) {
     console.error("Failed to process stream:", err);
     throw err;
   }
 }
-  */
+
+export async function fetchInsights(summoner: string): Promise<{
+  first: string;
+  second: string;
+  third: string;
+} | null> {
+  try {
+    const res = await fetch(`${baseUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: "How did dogmaster do?" }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to get insights");
+    }
+
+    const data = (await res.json()) as { question: string; answer: string };
+    const answer = data.answer;
+    const paragraphs = answer
+      .split(/\n\s*\n/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+
+    if (paragraphs.length >= 3) {
+      return {
+        first: paragraphs[0] ?? "",
+        second: paragraphs[1] ?? "",
+        third: paragraphs[2] ?? "",
+      };
+    } else if (paragraphs.length === 2) {
+      return {
+        first: paragraphs[0] ?? "",
+        second: paragraphs[1] ?? "",
+        third: "",
+      };
+    } else if (paragraphs.length === 1 && paragraphs[0]) {
+      const sentences = paragraphs[0].split(/\.\s+/);
+      const midPoint = Math.floor(sentences.length / 3);
+      return {
+        first: sentences.slice(0, midPoint).join(". ") + ".",
+        second: sentences.slice(midPoint, midPoint * 2).join(". ") + ".",
+        third: sentences.slice(midPoint * 2).join(". ") + ".",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching insights:", error);
+  }
+  return null;
+}
+
+export function parseRiotName(
+  input: string,
+): [summonerName: string, tagLine: string] {
+  if (!input || typeof input !== "string") {
+    return ["", ""];
+  }
+
+  const index = input.lastIndexOf("-"); // Use last hyphen to avoid issues in names
+  if (index === -1) {
+    return [input.trim(), ""];
+  }
+
+  const summonerName = input.slice(0, index).trim();
+  const tagLine = input.slice(index + 1).trim();
+
+  return [summonerName ?? "", tagLine ?? ""];
+}
 
 type ChampionData = {
   id: string; // PascalCase ID, e.g., "MissFortune"

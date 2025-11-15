@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Crown, Flame, Shield, Target } from "lucide-react";
 import {

@@ -1,8 +1,3 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-
-import stats from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
 import {
   getTopChampions,
   getBestMatchups,
@@ -10,6 +5,9 @@ import {
   getBestMatch,
   getTotalTimePlayed,
   getTopChampionsByTimePlayed,
+  parseRiotName,
+  analyzeAccount,
+  fetchInsights,
 } from "src/lib/summoner/summoner-page-utils";
 import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
@@ -25,14 +23,20 @@ import { TimePlayedSection } from "../../_components/TimePlayedSection";
 import SummonerInput from "~/app/_components/summonerInput";
 import SocialLink from "~/app/_components/socialLink";
 
-export default function Index() {
-  const [activeSection, setActiveSection] = useState("overview");
-  const [isShareOpen, setIsShareOpen] = useState(false);
-  const [insightParagraphs, setInsightParagraphs] = useState<{
-    first: string;
-    second: string;
-    third: string;
-  } | null>(null);
+export default async function Index({
+  params,
+}: {
+  params: { summoner1: string };
+}) {
+  const { summoner1 } = await params;
+  const path = `${baseUrl}/summoner/${summoner1}`;
+
+  const [summonerName, tagLine] = parseRiotName(summoner1 as string);
+  const profileIcon =
+    "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
+
+  const stats = await analyzeAccount(summonerName, tagLine, false);
+  const insightParagraphs = { first: "", second: "", third: "" };
 
   const aggregate = stats.wins.stats.aggregate;
   const topChamps = getTopChampions(stats);
@@ -46,76 +50,7 @@ export default function Index() {
   const hoursPlayed = totalTime.totalHours;
   const avgGameMinutes = totalTime.avgGameLength;
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: "How did dogmaster do?" }),
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to get insights");
-        }
-
-        const data = await res.json() as { question: string; answer: string };
-        const answer = data.answer;
-        const paragraphs = answer
-          .split(/\n\s*\n/)
-          .map((p) => p.trim())
-          .filter((p) => p.length > 0);
-
-        if (paragraphs.length >= 3) {
-          setInsightParagraphs({
-            first: paragraphs[0] ?? "",
-            second: paragraphs[1] ?? "",
-            third: paragraphs[2] ?? "",
-          });
-        } else if (paragraphs.length === 2) {
-          setInsightParagraphs({
-            first: paragraphs[0] ?? "",
-            second: paragraphs[1] ?? "",
-            third: "",
-          });
-        } else if (paragraphs.length === 1 && paragraphs[0]) {
-          const sentences = paragraphs[0].split(/\.\s+/);
-          const midPoint = Math.floor(sentences.length / 3);
-          setInsightParagraphs({
-            first: sentences.slice(0, midPoint).join(". ") + ".",
-            second: sentences.slice(midPoint, midPoint * 2).join(". ") + ".",
-            third: sentences.slice(midPoint * 2).join(". ") + ".",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching insights:", error);
-      }
-    };
-
-    void fetchInsights();
-  }, []);
-
-  const summonerName = "Dogmaster";
-  const tagLine = "Treat";
-  const profileIcon =
-    "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
-
   const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") ?? "Aatrox";
-
-  const handleSectionClick = (section: string) => {
-    setActiveSection(section);
-    const element = document.getElementById(section);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-    }
-  };
 
   return (
     <main>
@@ -202,17 +137,9 @@ export default function Index() {
               <p className="text-muted-foreground text-sm">
                 Share your season insights with the world.
               </p>
-              <button
-                onClick={() => setIsShareOpen(true)}
-                className="btn btn-accent !rounded-none"
-              >
-                Share
-              </button>
+              <SocialLink url={path} />
+              <div className="from-primary via-noxus-red-light to-primary mt-10 h-[2px] w-32 rounded-full bg-gradient-to-r opacity-80" />
             </div>
-            {isShareOpen && (
-              <SocialLink onClose={() => setIsShareOpen(false)} />
-            )}
-            <div className="from-primary via-noxus-red-light to-primary mt-10 h-[2px] w-32 rounded-full bg-gradient-to-r opacity-80" />
           </div>
         </footer>
       </div>

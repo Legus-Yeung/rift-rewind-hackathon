@@ -1,37 +1,33 @@
 # Rift Rewind 🎮
 
-An AI-powered League of Legends coaching agent that transforms match history data into personalized insights, helping players reflect, learn, and improve their gameplay.
+A year-end report for League of Legends players that analyzes your season and compares wins vs losses to identify what drives success.
 
-## 🎯 Project Vision
+## What It Does
 
-Build an intelligent agent using AWS AI services and the League API to generate personalized end-of-year insights that go beyond typical stat tracking. Help players discover their strengths, identify growth areas, and celebrate their journey in League of Legends.
+Rift Rewind generates personalized year-end reports featuring:
+- **Season Overview**: KDA, games played, gold, damage
+- **AI Insights**: Personalized analysis using AWS Bedrock
+- **Champion Performance**: Top champions with stats
+- **Matchup Analysis**: Best matchups and positions
+- **Vision & Objective Control**: Wards and objective statistics
+- **KDA Trends**: Performance across champions
+- **Player Comparison**: Side-by-side with friends
+- **Shareable Reports**: Export your year-end summary
 
-## 🚧 What We're Building
+## Tech Stack
 
-### Core Features (In Progress)
-- **Match History Analysis** - Process full-year match data to identify patterns
-- **AI-Powered Insights** - Generate personalized recommendations using AWS Bedrock
-- **Performance Visualizations** - Track progress over time with interactive charts
-- **Year-End Summaries** - Create shareable retrospectives highlighting achievements
-- **Social Comparisons** - Compare playstyles with friends and teammates
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS, Recharts
+- **Backend**: tRPC, NextAuth.js
+- **AI**: AWS Bedrock (Qwen model)
+- **API**: Riot Games API with custom rate limiting
 
-### Tech Stack
-- **Frontend**: Next.js, TypeScript, Tailwind CSS
-- **Backend**: tRPC, Prisma, NextAuth.js
-- **AI Services**: AWS Bedrock, Amazon SageMaker
-- **Data Source**: League of Legends API
+## How It Works
 
-## 🛠️ Development Status
+Aggregates match data from the Riot API, compares metrics between wins and losses, and uses AI to generate insights that explain winning patterns.
 
-Currently integrating Riot Games API endpoints and setting up AWS AI services for match data analysis.
+## Built For
 
-## 🏆 Hackathon Goals
-
-Participating in the AWS + Riot Games "Rift Rewind" hackathon to build innovative tools that help League players:
-- Reflect on their gameplay journey
-- Learn from persistent patterns
-- Celebrate standout moments
-- Share insights with friends
+AWS + Riot Games Rift Rewind Hackathon
 
 ---
 

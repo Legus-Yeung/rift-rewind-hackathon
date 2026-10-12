@@ -13,6 +13,33 @@ function getRiotHeaders(): HeadersInit {
 
 const BASE_URL = "https://americas.api.riotgames.com";
 
+async function fetchRiot(url: string): Promise<Response> {
+  return RiotLimiter.schedule(async () => {
+    const response = await fetch(url, { headers: getRiotHeaders() });
+    if (response.ok) return response;
+
+    const body = await response.text();
+    const error = new Error(
+      `HTTP ${response.status}: ${body || response.statusText}`,
+    );
+    Object.assign(error, {
+      retryable: response.status === 429,
+    });
+
+    if (response.status === 429) {
+      const retryAfterSeconds = Number(response.headers.get("Retry-After"));
+      Object.assign(error, {
+        retryAfterMs:
+          Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+            ? retryAfterSeconds * 1000
+            : 60_000,
+      });
+    }
+
+    throw error;
+  });
+}
+
 /**
  * Accesses the riot API to get a user's puuid for use in other riot API calls.
  *
@@ -28,13 +55,7 @@ export async function fetchAccount(
 ): Promise<AccountDto> {
   const url = `${BASE_URL}/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
 
-  const res = await RiotLimiter.schedule(() =>
-    fetch(url, { headers: getRiotHeaders() }),
-  );
-
-  if (!res.ok) {
-    throw new Error(`Request failed with ${res.status}: ${await res.text()}`);
-  }
+  const res = await fetchRiot(url);
   const data = (await res.json()) as AccountDto;
   return data;
 }
@@ -71,12 +92,7 @@ export async function fetchMatchHistory(
 
   const url = `${BASE_URL}/lol/match/v5/matches/by-puuid/${puuid}/ids?${params.toString()}`;
 
-  const res = await RiotLimiter.schedule(() =>
-    fetch(url, { headers: getRiotHeaders() }),
-  );
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
+  const res = await fetchRiot(url);
 
   const matchIds = (await res.json()) as string[];
   return matchIds;
@@ -86,29 +102,13 @@ export async function fetchAllMatchIds(
   puuid: string,
   searchParams: URLSearchParams,
 ): Promise<string[]> {
-  const allMatchIds: string[] = [];
-  const oneYearAgoSeconds = Math.floor(Date.now() / 1000) - 365 * 24 * 60 * 60;
-  const startTime =
-    searchParams.get("startTime") ?? oneYearAgoSeconds.toString();
+  const params = new URLSearchParams(searchParams);
+  params.set("start", "0");
+  params.set("count", "50");
+  params.set("queue", "420");
+  params.set("type", "ranked");
 
-  let start = 0;
-  const count = 100;
-  while (allMatchIds.length < 1500) {
-    const paginatedParams = new URLSearchParams(searchParams);
-    paginatedParams.set("start", start.toString());
-    paginatedParams.set("count", count.toString());
-    paginatedParams.set("startTime", startTime);
-    paginatedParams.set("queue", "420");
-    paginatedParams.set("type", "ranked");
-
-    const batch = await fetchMatchHistory(puuid, paginatedParams);
-
-    allMatchIds.push(...batch.slice(0, 1500 - allMatchIds.length));
-    if (batch.length < count) break;
-    start += batch.length;
-  }
-
-  return allMatchIds;
+  return fetchMatchHistory(puuid, params);
 }
 
 /**
@@ -122,12 +122,7 @@ export async function fetchAllMatchIds(
 export async function fetchMatchInfo(matchId: string): Promise<MatchDto> {
   const url = `${BASE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}`;
 
-  const res = await RiotLimiter.schedule(() =>
-    fetch(url, { headers: getRiotHeaders() }),
-  );
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
+  const res = await fetchRiot(url);
 
   const matchInfo = (await res.json()) as MatchDto;
   return matchInfo;
@@ -146,12 +141,7 @@ export async function fetchMatchTimeline(
 ): Promise<TimelineDto> {
   const url = `${BASE_URL}/lol/match/v5/matches/${encodeURIComponent(matchId)}/timeline`;
 
-  const res = await RiotLimiter.schedule(() =>
-    fetch(url, { headers: getRiotHeaders() }),
-  );
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  }
+  const res = await fetchRiot(url);
 
   const timeline = (await res.json()) as TimelineDto;
   return timeline;

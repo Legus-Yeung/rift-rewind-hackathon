@@ -48,15 +48,13 @@ describe("Riot API helpers", () => {
         text: async () => "Not Found",
       } as Response);
 
-      await expect(fetchAccount("Summoner", "NA1")).rejects.toThrow(
-        /Request failed/,
-      );
+      await expect(fetchAccount("Summoner", "NA1")).rejects.toThrow(/HTTP 404/);
     });
   });
 
   describe("fetchAllMatchIds", () => {
-    it("requests ranked solo/duo games from the previous year", async () => {
-      const matchIds = ["NA1_123"];
+    it("requests the 50 most recent ranked solo/duo games", async () => {
+      const matchIds = Array.from({ length: 50 }, (_, index) => `NA1_${index}`);
       (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
         ok: true,
         json: async () => matchIds,
@@ -68,8 +66,9 @@ describe("Riot API helpers", () => {
       );
 
       expect(result).toEqual(matchIds);
+      expect(fetch).toHaveBeenCalledTimes(1);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringMatching(/startTime=\d+&queue=420&type=ranked/),
+        expect.stringContaining("start=0&count=50&queue=420&type=ranked"),
         expect.objectContaining({
           headers: { "X-Riot-Token": "test-api-key" },
         }),
@@ -111,6 +110,26 @@ describe("Riot API helpers", () => {
   });
 
   describe("fetchMatchInfo", () => {
+    it("retries rate-limited responses after the Retry-After delay", async () => {
+      (fetch as jest.MockedFunction<typeof fetch>)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          statusText: "Too Many Requests",
+          headers: new Headers({ "Retry-After": "0.01" }),
+          text: async () => "rate limit exceeded",
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ metadata: { matchId: "match123" } }),
+        } as Response);
+
+      await expect(fetchMatchInfo("match123")).resolves.toEqual({
+        metadata: { matchId: "match123" },
+      });
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
     it("returns match info when fetch succeeds", async () => {
       const mockData: Partial<MatchDto> = {
         metadata: {

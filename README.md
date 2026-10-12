@@ -29,10 +29,9 @@ Aggregates match data from the Riot API, compares metrics between wins and losse
 
 Set `RIOT_API_KEY` in your local environment before starting the app. The key is
 used only by server-side routes and must not be prefixed with `NEXT_PUBLIC_`.
-Summoner pages look up the Riot ID entered on the home page, then analyze ranked
-solo/duo matches from the preceding 365 days (up to 1,500 matches). Reports with
-large match histories can take several minutes because Riot rate-limits match
-lookups. The current Riot API client uses the Americas regional cluster.
+Summoner pages look up the Riot ID entered on the home page, then analyze the 50
+most recent ranked solo/duo matches. The current Riot API client uses the
+Americas regional cluster.
 
 For local development, add the key to `.env.local` (or your existing `.env`)
 and restart the dev server after changing it. Do not commit the key.

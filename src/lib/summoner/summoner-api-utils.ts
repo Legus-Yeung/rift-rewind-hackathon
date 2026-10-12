@@ -1,8 +1,10 @@
 import type { MatchDto } from "../riot/dtos/match/match.dto";
 import type { ParticipantDto } from "../riot/dtos/match/participant.dto";
 import { RiotPosition } from "../riot/enums/riot-position";
-import { apiRequest } from "../api/request-utils";
-import { baseUrl } from "../api/url-utils";
+import {
+  fetchMatchInfo,
+  fetchMatchTimeline,
+} from "../riot/riot-api-utils";
 import type { InfoDto } from "../riot/dtos/match/info.dto";
 import type { ChallengesDto } from "../riot/dtos/match/challenges.dto";
 
@@ -320,20 +322,6 @@ function getLaneOpponent(puuid: string, matchDto: MatchDto): string {
 }
 
 /**
- * Parses the gameName and tagLine of a summoner from a "gameName-tagLine" formatted string
- *
- * @param str - a string in the format "gameName-tagLine" ; gameName and/or tagLine can be empty
- * @returns the gameName and tagLine of the given summoner, replaced with empty strings if empty
- */
-export function parseSummoner(str: string): [string, string] {
-  const index = str.lastIndexOf("-");
-  const gameName: string = str.slice(0, index);
-  const tagLine: string = str.slice(index + 1);
-  const summoner: [string, string] = [gameName, tagLine];
-  return summoner;
-}
-
-/**
  * Retrieves aggregate champion info for use in all summoner statistics. Returns results in no particular order.
  *
  * @param puuid - puuid of the summoner
@@ -344,63 +332,53 @@ export function parseSummoner(str: string): [string, string] {
 export async function getMatchStats(
   puuid: string,
   matchIds: string[],
-): Promise<MatchEntry> {
+): Promise<{ stats: MatchEntry; profileIconId: number | null }> {
   const summoner: MatchEntry = createSummonerEntry();
-  console.log(`Number of Matches: ${matchIds.length}`);
+  let profileIconId: number | null = null;
   for (const matchId of matchIds) {
-    try {
-      // get Riot dtos
-      const matchInfo: MatchDto = await apiRequest<MatchDto>(
-        `${baseUrl}/api/riot?action=match-info&matchId=${matchId}`,
-      );
-      const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
-      const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
-      const opponentInfo: ParticipantDto = getPlayerInfo(
-        opponentPuuid,
-        matchInfo,
-      );
+    const matchInfo: MatchDto = await fetchMatchInfo(matchId);
+    const playerInfo: ParticipantDto = getPlayerInfo(puuid, matchInfo);
+    profileIconId ??= playerInfo.profileIcon ?? null;
+    const opponentPuuid: string = getLaneOpponent(puuid, matchInfo);
+    const opponentInfo: ParticipantDto = getPlayerInfo(
+      opponentPuuid,
+      matchInfo,
+    );
 
-      // get the MatchStats for the given match for both players in the matchup
-      const playerStats: MatchStats = {
-        aggregate: parseAggregateStats(matchInfo, playerInfo),
-        average: parseAverageStats(matchInfo, playerInfo),
-        min: parseMinMaxStats(matchInfo, playerInfo),
-        max: parseMinMaxStats(matchInfo, playerInfo),
-      };
+    const playerStats: MatchStats = {
+      aggregate: parseAggregateStats(matchInfo, playerInfo),
+      average: parseAverageStats(matchInfo, playerInfo),
+      min: parseMinMaxStats(matchInfo, playerInfo),
+      max: parseMinMaxStats(matchInfo, playerInfo),
+    };
 
-      const opponentStats: MatchStats = {
-        aggregate: parseAggregateStats(matchInfo, opponentInfo),
-        average: parseAverageStats(matchInfo, opponentInfo),
-        min: parseMinMaxStats(matchInfo, opponentInfo),
-        max: parseMinMaxStats(matchInfo, opponentInfo),
-      };
+    const opponentStats: MatchStats = {
+      aggregate: parseAggregateStats(matchInfo, opponentInfo),
+      average: parseAverageStats(matchInfo, opponentInfo),
+      min: parseMinMaxStats(matchInfo, opponentInfo),
+      max: parseMinMaxStats(matchInfo, opponentInfo),
+    };
 
-      // ready summoner heirarchy for entry
-      const outcome: OutcomeEntry =
-        summoner[playerInfo.win ? "wins" : "losses"];
-      const champion: ChampionEntry = (outcome.champion[
-        playerInfo.championName
-      ] ??= createChampionEntry());
-      const position: PositionEntry = (champion.position[
-        playerInfo.teamPosition
-      ] ??= createPositionEntry());
-      const matchup: MatchupEntry = (position.matchup[
-        opponentInfo.championName
-      ] ??= createMatchupEntry());
+    const outcome: OutcomeEntry = summoner[playerInfo.win ? "wins" : "losses"];
+    const champion: ChampionEntry = (outcome.champion[
+      playerInfo.championName
+    ] ??= createChampionEntry());
+    const position: PositionEntry = (champion.position[
+      playerInfo.teamPosition
+    ] ??= createPositionEntry());
+    const matchup: MatchupEntry = (position.matchup[
+      opponentInfo.championName
+    ] ??= createMatchupEntry());
 
-      // update aggregate stats
-      updateStats(outcome.stats, playerStats);
-      updateStats(champion.stats, playerStats);
-      updateStats(position.stats, playerStats);
-      updateStats(matchup.player, playerStats);
-      updateStats(matchup.opponent, opponentStats);
-    } catch (error) {
-      console.warn(error);
-    }
+    updateStats(outcome.stats, playerStats);
+    updateStats(champion.stats, playerStats);
+    updateStats(position.stats, playerStats);
+    updateStats(matchup.player, playerStats);
+    updateStats(matchup.opponent, opponentStats);
   }
 
   averageAllStats(summoner);
-  return summoner;
+  return { stats: summoner, profileIconId };
 }
 
 function createTimelineEntry(): TimelineEntry {
@@ -481,12 +459,9 @@ export async function getTimelineStats(
   matchIds: string[],
 ): Promise<TimelineEntry> {
   const summoner: TimelineEntry = createTimelineEntry();
-  console.log(`Number of Matches: ${matchIds.length}`);
   for (const matchId of matchIds) {
     try {
-      const timelineInfo: TimelineDto = await apiRequest<TimelineDto>(
-        `${baseUrl}/api/riot?action=match-timeline&matchId=${matchId}`,
-      );
+      const timelineInfo: TimelineDto = await fetchMatchTimeline(matchId);
       const participantId: number = getParticipantId(puuid, timelineInfo);
 
       const itemStats: Record<number, ItemStats> = getItemCounts(

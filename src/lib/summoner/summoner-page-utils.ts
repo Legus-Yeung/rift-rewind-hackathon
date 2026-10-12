@@ -223,9 +223,13 @@ export function getBestMatch(data: MatchEntry): {
 }
 
 export function getTotalTimePlayed(data: MatchEntry) {
-  const totalSeconds = data.wins.stats.aggregate.gameDuration;
+  const totalSeconds =
+    data.wins.stats.aggregate.gameDuration +
+    data.losses.stats.aggregate.gameDuration;
+  const totalGames =
+    data.wins.stats.aggregate.games + data.losses.stats.aggregate.games;
   const totalHours = totalSeconds / 3600;
-  const avgGameLength = totalSeconds / data.wins.stats.aggregate.games / 60;
+  const avgGameLength = totalGames === 0 ? 0 : totalSeconds / totalGames / 60;
 
   return {
     totalHours,

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import stats1 from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
-import stats2 from "data/stats_sinister-0005-2025-11-08T04-46-17-505Z.json";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 import {
   getTopChampions,
@@ -28,6 +27,10 @@ import type {
   AggregateStats,
   MatchEntry,
 } from "~/lib/summoner/summoner-interface-utils";
+import {
+  fetchSummonerReport,
+  parseSummoner,
+} from "~/lib/summoner/summoner-client-utils";
 import SocialLink from "~/app/_components/socialLink";
 
 type PlayerInfo = {
@@ -52,26 +55,77 @@ type ParsedStats = {
 };
 
 export default function ComparePage() {
+  const { summoner1, summoner2 } = useParams<{
+    summoner1: string;
+    summoner2: string;
+  }>();
   const [isShareOpen, setIsShareOpen] = useState(false);
-  // 🎯 Define players
-  const players: PlayerInfo[] = [
-    {
-      name: "Dogmaster",
-      tag: "#Treat",
-      profileIcon:
-        "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png",
-      stats: stats1 as MatchEntry,
-    },
-    {
-      name: "Sinister",
-      tag: "#0005",
-      profileIcon:
-        "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/7.png",
-      stats: stats2 as MatchEntry,
-    },
-  ];
+  const [players, setPlayers] = useState<PlayerInfo[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // 🧩 Derive parsed stats
+  useEffect(() => {
+    let cancelled = false;
+    const [gameName1, tagLine1] = parseSummoner(summoner1);
+    const [gameName2, tagLine2] = parseSummoner(summoner2);
+    setPlayers(null);
+    setError(null);
+
+    if (!gameName1 || !tagLine1 || !gameName2 || !tagLine2) {
+      setError("Enter two Riot IDs in the format game-name-tag.");
+      return;
+    }
+
+    void Promise.all([
+      fetchSummonerReport(gameName1, tagLine1),
+      fetchSummonerReport(gameName2, tagLine2),
+    ])
+      .then(([report1, report2]) => {
+        if (cancelled) return;
+        setPlayers(
+          [report1, report2].map(({ account, stats }) => ({
+            name: account.gameName,
+            tag: `#${account.tagLine}`,
+            profileIcon: `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/${account.profileIconId ?? 1}.png`,
+            stats,
+          })),
+        );
+      })
+      .catch((fetchError: unknown) => {
+        if (!cancelled) {
+          setError(
+            fetchError instanceof Error
+              ? fetchError.message
+              : "Failed to load summoner data",
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [summoner1, summoner2]);
+
+  if (error) {
+    return (
+      <main className="container mx-auto min-h-screen px-4 py-24">
+        <p role="alert" className="text-destructive text-center">
+          {error}
+        </p>
+      </main>
+    );
+  }
+
+  if (!players) {
+    return (
+      <main
+        className="container mx-auto min-h-screen px-4 py-24 text-center"
+        aria-live="polite"
+      >
+        Loading Riot match histories...
+      </main>
+    );
+  }
+
   const parsed: ParsedStats[] = players.map(({ stats }) => {
     const aggregate = stats.wins.stats.aggregate;
     const topChamps = getTopChampions(stats);

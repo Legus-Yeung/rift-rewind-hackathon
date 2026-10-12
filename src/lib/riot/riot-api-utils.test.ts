@@ -1,5 +1,6 @@
 import {
   fetchAccount,
+  fetchAllMatchIds,
   fetchMatchHistory,
   fetchMatchInfo,
   fetchMatchTimeline,
@@ -29,9 +30,15 @@ describe("Riot API helpers", () => {
         json: async () => mockData,
       } as Response);
 
-      const result = await fetchAccount("Summoner", "NA1");
+      const result = await fetchAccount("Summoner Name", "NA1");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/accounts/by-riot-id/Summoner%20Name/NA1"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -41,8 +48,30 @@ describe("Riot API helpers", () => {
         text: async () => "Not Found",
       } as Response);
 
-      await expect(fetchAccount("Summoner", "NA1")).rejects.toThrow(
-        /Request failed/,
+      await expect(fetchAccount("Summoner", "NA1")).rejects.toThrow(/HTTP 404/);
+    });
+  });
+
+  describe("fetchAllMatchIds", () => {
+    it("requests the 50 most recent ranked solo/duo games", async () => {
+      const matchIds = Array.from({ length: 50 }, (_, index) => `NA1_${index}`);
+      (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => matchIds,
+      } as Response);
+
+      const result = await fetchAllMatchIds(
+        "puuid123",
+        new URLSearchParams(),
+      );
+
+      expect(result).toEqual(matchIds);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("start=0&count=50&queue=420&type=ranked"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
       );
     });
   });
@@ -59,6 +88,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchHistory("puuid123", new URLSearchParams());
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/by-puuid/puuid123/ids?"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -75,6 +110,26 @@ describe("Riot API helpers", () => {
   });
 
   describe("fetchMatchInfo", () => {
+    it("retries rate-limited responses after the Retry-After delay", async () => {
+      (fetch as jest.MockedFunction<typeof fetch>)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          statusText: "Too Many Requests",
+          headers: new Headers({ "Retry-After": "0.01" }),
+          text: async () => "rate limit exceeded",
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ metadata: { matchId: "match123" } }),
+        } as Response);
+
+      await expect(fetchMatchInfo("match123")).resolves.toEqual({
+        metadata: { matchId: "match123" },
+      });
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
     it("returns match info when fetch succeeds", async () => {
       const mockData: Partial<MatchDto> = {
         metadata: {
@@ -92,6 +147,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchInfo("match123");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/match123"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -123,6 +184,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchTimeline("match123");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/match123/timeline"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {

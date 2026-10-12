@@ -2,9 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { env } from "~/env.js";
-// DEMO: Statically importing player profile for demo purposes only
-// In production, this would be dynamically fetched based on the requested summoner
-import { DOGMASTER_TREAT_PROFILE, formatPlayerProfileForPrompt } from "~/lib/demo-player-profile";
+import type { MatchEntry } from "~/lib/summoner/summoner-interface-utils";
 
 interface BedrockMessage {
   role: "system" | "user" | "assistant";
@@ -28,6 +26,8 @@ interface BedrockResponse {
 
 interface ChatRequest {
   question: string;
+  summonerName: string;
+  stats: MatchEntry;
 }
 
 const client = new BedrockRuntimeClient({ 
@@ -40,30 +40,93 @@ const client = new BedrockRuntimeClient({
 
 export async function POST(req: NextRequest) {
   try {
-    const requestBody = await req.json() as ChatRequest;
-    const { question } = requestBody;
+    const requestBody = (await req.json()) as Partial<ChatRequest>;
+    const { question, summonerName, stats } = requestBody;
+    if (
+      !question?.trim() ||
+      !summonerName?.trim() ||
+      !stats?.wins?.stats?.aggregate ||
+      !stats.losses?.stats?.aggregate
+    ) {
+      return NextResponse.json(
+        { error: "question, summonerName, and match stats are required" },
+        { status: 400 },
+      );
+    }
 
     const modelId = "qwen.qwen3-coder-30b-a3b-v1:0";
 
-    // DEMO: Using statically imported player profile for demo purposes
-    const playerProfile = formatPlayerProfileForPrompt(DOGMASTER_TREAT_PROFILE);
+    const wins = stats.wins.stats.aggregate;
+    const losses = stats.losses.stats.aggregate;
+    const totalGames = wins.games + losses.games;
+    const totalHours = (wins.gameDuration + losses.gameDuration) / 3600;
+    const topChampions = Object.entries(stats.wins.champion)
+      .sort(
+        ([, first], [, second]) =>
+          second.stats.aggregate.games - first.stats.aggregate.games,
+      )
+      .slice(0, 5)
+      .map(([name, champion]) => ({
+        name,
+        games: champion.stats.aggregate.games,
+      }));
+    const playerProfile = JSON.stringify(
+      {
+        summonerName,
+        totalGames,
+        totalHours: Number(totalHours.toFixed(1)),
+        winRate:
+          totalGames === 0
+            ? 0
+            : Number(((wins.games / totalGames) * 100).toFixed(1)),
+        wins: {
+          games: wins.games,
+          kills: wins.kills,
+          deaths: wins.deaths,
+          assists: wins.assists,
+          kda: Number(
+            ((wins.kills + wins.assists) / Math.max(1, wins.deaths)).toFixed(2),
+          ),
+          visionScore: wins.visionScore,
+          baronTakedowns: wins.baronTakedowns,
+          dragonTakedowns: wins.dragonTakedowns,
+        },
+        losses: {
+          games: losses.games,
+          kills: losses.kills,
+          deaths: losses.deaths,
+          assists: losses.assists,
+          kda: Number(
+            ((losses.kills + losses.assists) / Math.max(1, losses.deaths)).toFixed(
+              2,
+            ),
+          ),
+          visionScore: losses.visionScore,
+          baronTakedowns: losses.baronTakedowns,
+          dragonTakedowns: losses.dragonTakedowns,
+        },
+        topChampions,
+      },
+      null,
+      2,
+    );
 
-    const system_prompt = `You are an intelligent League of Legends analyst AI that generates personalized, engaging end-of-year retrospectives. You are currently analyzing data for a specific player in a demo configuration.
+    const system_prompt = `You are an intelligent League of Legends analyst AI that generates personalized retrospectives from live Riot match data. You are analyzing ${summonerName}'s recent ranked match history.
 
 ${playerProfile}
 
 ## Core Mission
-You are analyzing ${DOGMASTER_TREAT_PROFILE.summonerName}'s League of Legends match data to tell a focused story about what makes them win games. Your primary approach is to **compare statistics between wins and losses** to identify the key factors that contribute to victory.
+You are analyzing ${summonerName}'s League of Legends match data to tell a focused story about what makes them win games. Your primary approach is to **compare statistics between wins and losses** to identify the key factors that contribute to victory.
 
 **CRITICAL RESPONSE STRUCTURE - EXACTLY 3 PARAGRAPHS**:
 
-**Paragraph 1 (Celebratory)**: Congratulate ${DOGMASTER_TREAT_PROFILE.summonerName} for having a wonderful year. Celebrate their achievements, dedication, and overall performance. Be warm and congratulatory.
+**Paragraph 1 (Celebratory)**: Congratulate ${summonerName} for their performance in the analyzed period. Celebrate their achievements and dedication. Be warm and congratulatory.
 
 **Paragraph 2 (Win/Loss Comparison)**: Compare performance between wins and losses. Focus on key metrics like KDA differences, objective control, and vision score. Keep this paragraph concise and data-driven. Example structure: "Your win rate shows you're performing significantly better in wins versus losses. In victories, your KDA climbs to around X compared to Y in defeats—this dramatic difference suggests [insight]. You're also securing [objective stat] in wins versus much lower contribution in losses, indicating [insight]."
 
 **Paragraph 3 (Winning Formula)**: Explain what makes them win and why. Focus on the key behaviors and patterns that lead to victory. Start with "What makes you win?" Example structure: "What makes you win? Your [role/strength] is clear: you're [key behavior] while [key behavior], maintaining [key strength], and making [key decision]. These patterns suggest you win when you [actionable insight]."
 
-**IMPORTANT**: All responses must be framed as analysis specifically for ${DOGMASTER_TREAT_PROFILE.summonerName}. When users ask questions, interpret them as questions about ${DOGMASTER_TREAT_PROFILE.summonerName}'s performance and statistics. Always reference "you" or "your" when speaking about the player, as if you're directly addressing ${DOGMASTER_TREAT_PROFILE.summonerName}.
+**IMPORTANT**: All responses must be framed as analysis specifically for ${summonerName}. When users ask questions, interpret them as questions about this player's performance and statistics. Always reference "you" or "your" when speaking about the player.
 
 ## Primary Analysis Approach: Win vs Loss Comparison
 
@@ -173,11 +236,11 @@ After comparing wins vs losses, identify the **top 2-3 factors** that most stron
 
 **REQUIRED FORMAT - Exactly 3 Paragraphs**:
 
-"[Paragraph 1 - Celebratory] Congratulations on an incredible year, ${DOGMASTER_TREAT_PROFILE.summonerName}! You've put in ${DOGMASTER_TREAT_PROFILE.keyStatistics.hoursPlayed} hours across ${DOGMASTER_TREAT_PROFILE.keyStatistics.totalGames} games, showcasing dedication and skill. Your ${DOGMASTER_TREAT_PROFILE.keyStatistics.kdaRatio} KDA ratio and ${DOGMASTER_TREAT_PROFILE.keyStatistics.goldEarned.toLocaleString()} gold earned demonstrate consistent high-level performance. It's been a wonderful year of growth and achievement.
+[Paragraph 1 - Celebratory] Congratulate ${summonerName} on the analyzed period and cite only values present in the supplied profile.
 
-[Paragraph 2 - Win/Loss Comparison] Your win rate shows you're performing significantly better in wins versus losses. In victories, your KDA climbs to around 6.5 compared to 3.2 in defeats—this dramatic difference suggests you're making fewer mistakes and staying alive longer. You're also securing ${DOGMASTER_TREAT_PROFILE.objectiveControl.barons.teamContribution}% of baron takedowns in wins versus much lower contribution in losses, indicating your team relies heavily on your objective control.
+[Paragraph 2 - Win/Loss Comparison] Compare the actual KDA and objective values in the supplied wins and losses data. Do not invent numbers or claim a metric is higher when it is not.
 
-[Paragraph 3 - Winning Formula] What makes you win? Your jungle dominance is clear: you're killing fewer enemies while securing crucial objectives, maintaining strong vision control, and making better decisions at key moments. These patterns suggest you win when you stay alive, make smart plays, and control the map's tempo rather than chasing flashy kills."
+[Paragraph 3 - Winning Formula] Explain the strongest evidence-based pattern in the supplied data and offer an actionable insight."
 
 **CRITICAL**: Follow this exact 3-paragraph structure. Paragraph 1 celebrates, Paragraph 2 compares wins/losses, Paragraph 3 explains the winning formula.`;
 

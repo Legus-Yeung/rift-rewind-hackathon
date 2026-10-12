@@ -22,9 +22,24 @@ limiter.on("failed", async (error, jobInfo) => {
   const maxRetries = 3;
   const id = jobInfo.options.id;
 
+  if (
+    error instanceof Error &&
+    "retryable" in error &&
+    error.retryable === false
+  ) {
+    return null;
+  }
+
   if (retryCount < maxRetries) {
     console.warn(`Job ${id} failed on retry attempt #${retryCount}: ${error}`);
-    return 1000;
+    if (
+      error instanceof Error &&
+      "retryAfterMs" in error &&
+      typeof error.retryAfterMs === "number"
+    ) {
+      return error.retryAfterMs;
+    }
+    return 1000 * 2 ** retryCount;
   }
   console.warn(`Job ${id} dropped after retry attempt #${retryCount}`, error);
   return null;

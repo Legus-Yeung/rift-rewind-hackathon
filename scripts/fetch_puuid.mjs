@@ -1,8 +1,9 @@
-const API_KEY = "RGAPI-14d98752-4a87-42e2-b27c-2f2b4aa7ab6b";
+const API_KEY = process.env.RIOT_API_KEY;
 const url = "https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/c9loki/kr3";
 
 async function getAccount() {
   try {
+    if (!API_KEY) throw new Error("RIOT_API_KEY environment variable is not set");
     const res = await fetch(url, {
       headers: {
         "X-Riot-Token": API_KEY

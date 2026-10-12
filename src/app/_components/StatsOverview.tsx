@@ -28,7 +28,7 @@ export function StatsOverview({
   const stats = [
     {
       label: "Avg K / D / A",
-      value: `${(aggregate.kills/aggregate.games).toFixed(1)} / ${(aggregate.deaths/aggregate.games).toFixed(1)} / ${(aggregate.assists/aggregate.games).toFixed(1)}`,
+      value: `${(aggregate.kills / Math.max(1, aggregate.games)).toFixed(1)} / ${(aggregate.deaths / Math.max(1, aggregate.games)).toFixed(1)} / ${(aggregate.assists / Math.max(1, aggregate.games)).toFixed(1)}`,
       highlight: true,
     },
     { label: "KDA Ratio", value: kda, highlight: true },

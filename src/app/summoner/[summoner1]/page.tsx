@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-
-import stats from "data/stats_dogmaster-treat-2025-11-08T04-18-54-306Z.json";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import {
   getTopChampions,
   getBestMatchups,
@@ -11,6 +10,11 @@ import {
   getTotalTimePlayed,
   getTopChampionsByTimePlayed,
 } from "src/lib/summoner/summoner-page-utils";
+import {
+  fetchSummonerReport,
+  parseSummoner,
+  type SummonerReport,
+} from "~/lib/summoner/summoner-client-utils";
 import { getPositionVisionData, getChampionKDAData } from "src/lib/vision-data";
 
 import { HeroSection } from "../../_components/HeroSection";
@@ -26,14 +30,103 @@ import SummonerInput from "~/app/_components/summonerInput";
 import SocialLink from "~/app/_components/socialLink";
 
 export default function Index() {
+  const { summoner1 } = useParams<{ summoner1: string }>();
   const [activeSection, setActiveSection] = useState("overview");
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [insightParagraphs, setInsightParagraphs] = useState<{
-    first: string;
-    second: string;
-    third: string;
-  } | null>(null);
+  const [report, setReport] = useState<SummonerReport | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [insightParagraphs, setInsightParagraphs] = useState<string[]>([]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const [gameName, tagLine] = parseSummoner(summoner1);
+    setReport(null);
+    setError(null);
+
+    if (!gameName || !tagLine) {
+      setError("Enter a Riot ID in the format game-name-tag.");
+      return;
+    }
+
+    void fetchSummonerReport(gameName, tagLine)
+      .then((result) => {
+        if (!cancelled) setReport(result);
+      })
+      .catch((fetchError: unknown) => {
+        if (!cancelled) {
+          setError(
+            fetchError instanceof Error
+              ? fetchError.message
+              : "Failed to load summoner data",
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [summoner1]);
+
+  useEffect(() => {
+    if (!report) return;
+
+    let cancelled = false;
+    void fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: `How did ${report.account.gameName} do?`,
+        summonerName: `${report.account.gameName}#${report.account.tagLine}`,
+        stats: report.stats,
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Failed to get AI insights");
+        return (await response.json()) as { answer: string };
+      })
+      .then(({ answer }) => {
+        if (!cancelled) {
+          setInsightParagraphs(
+            answer
+              .split(/\n\s*\n/)
+              .map((paragraph) => paragraph.trim())
+              .filter(Boolean),
+          );
+        }
+      })
+      .catch((insightError: unknown) => {
+        if (!cancelled) {
+          console.error("Error fetching insights:", insightError);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [report]);
+
+  if (error) {
+    return (
+      <main className="container mx-auto min-h-screen px-4 py-24">
+        <p role="alert" className="text-destructive text-center">
+          {error}
+        </p>
+      </main>
+    );
+  }
+
+  if (!report) {
+    return (
+      <main
+        className="container mx-auto min-h-screen px-4 py-24 text-center"
+        aria-live="polite"
+      >
+        Loading Riot match history...
+      </main>
+    );
+  }
+
+  const { stats } = report;
   const aggregate = stats.wins.stats.aggregate;
   const topChamps = getTopChampions(stats);
   const bestMatchups = getBestMatchups(stats, 3);
@@ -46,59 +139,8 @@ export default function Index() {
   const hoursPlayed = totalTime.totalHours;
   const avgGameMinutes = totalTime.avgGameLength;
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: "How did dogmaster do?" }),
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to get insights");
-        }
-
-        const data = await res.json() as { question: string; answer: string };
-        const answer = data.answer;
-        const paragraphs = answer
-          .split(/\n\s*\n/)
-          .map((p) => p.trim())
-          .filter((p) => p.length > 0);
-
-        if (paragraphs.length >= 3) {
-          setInsightParagraphs({
-            first: paragraphs[0] ?? "",
-            second: paragraphs[1] ?? "",
-            third: paragraphs[2] ?? "",
-          });
-        } else if (paragraphs.length === 2) {
-          setInsightParagraphs({
-            first: paragraphs[0] ?? "",
-            second: paragraphs[1] ?? "",
-            third: "",
-          });
-        } else if (paragraphs.length === 1 && paragraphs[0]) {
-          const sentences = paragraphs[0].split(/\.\s+/);
-          const midPoint = Math.floor(sentences.length / 3);
-          setInsightParagraphs({
-            first: sentences.slice(0, midPoint).join(". ") + ".",
-            second: sentences.slice(midPoint, midPoint * 2).join(". ") + ".",
-            third: sentences.slice(midPoint * 2).join(". ") + ".",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching insights:", error);
-      }
-    };
-
-    void fetchInsights();
-  }, []);
-
-  const summonerName = "Dogmaster";
-  const tagLine = "Treat";
   const profileIcon =
-    "https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/6.png";
+    `https://ddragon.leagueoflegends.com/cdn/14.20.1/img/profileicon/${report.account.profileIconId ?? 1}.png`;
 
   const topChampion = topChamps[0]?.name?.replace(/\s+/g, "") ?? "Aatrox";
 
@@ -122,8 +164,8 @@ export default function Index() {
       <title>Summoner Stats | Rift Rewind</title>
       <div>
         <HeroSection
-          summonerName={summonerName}
-          tagLine={`#${tagLine}`}
+          summonerName={report.account.gameName}
+          tagLine={`#${report.account.tagLine}`}
           profileIcon={profileIcon}
           topChampion={topChampion}
           hoursPlayed={hoursPlayed}
@@ -133,16 +175,12 @@ export default function Index() {
         <StatsOverview
           aggregate={aggregate}
           avgGameMinutes={avgGameMinutes}
-          insightParagraph={insightParagraphs?.first}
+          insightParagraph={insightParagraphs[0]}
         />
 
         <ChampionsSection
           champions={topChamps}
-          insightParagraphs={
-            insightParagraphs
-              ? `${insightParagraphs.second}\n\n${insightParagraphs.third}`
-              : undefined
-          }
+          insightParagraphs={insightParagraphs.slice(1).join("\n\n")}
         />
 
         <MultikillSection
@@ -194,7 +232,7 @@ export default function Index() {
             <div className="flex w-full max-w-2xl justify-center">
               <div className="w-full sm:w-auto">
                 <SummonerInput
-                  baseRoute={`summoner/${summonerName}-${tagLine}`}
+                  baseRoute={`summoner/${encodeURIComponent(report.account.gameName)}-${encodeURIComponent(report.account.tagLine)}`}
                 />
               </div>
             </div>

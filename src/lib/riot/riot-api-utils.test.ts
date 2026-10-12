@@ -1,5 +1,6 @@
 import {
   fetchAccount,
+  fetchAllMatchIds,
   fetchMatchHistory,
   fetchMatchInfo,
   fetchMatchTimeline,
@@ -29,9 +30,15 @@ describe("Riot API helpers", () => {
         json: async () => mockData,
       } as Response);
 
-      const result = await fetchAccount("Summoner", "NA1");
+      const result = await fetchAccount("Summoner Name", "NA1");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/accounts/by-riot-id/Summoner%20Name/NA1"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -43,6 +50,29 @@ describe("Riot API helpers", () => {
 
       await expect(fetchAccount("Summoner", "NA1")).rejects.toThrow(
         /Request failed/,
+      );
+    });
+  });
+
+  describe("fetchAllMatchIds", () => {
+    it("requests ranked solo/duo games from the previous year", async () => {
+      const matchIds = ["NA1_123"];
+      (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => matchIds,
+      } as Response);
+
+      const result = await fetchAllMatchIds(
+        "puuid123",
+        new URLSearchParams(),
+      );
+
+      expect(result).toEqual(matchIds);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/startTime=\d+&queue=420&type=ranked/),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
       );
     });
   });
@@ -59,6 +89,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchHistory("puuid123", new URLSearchParams());
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/by-puuid/puuid123/ids?"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -92,6 +128,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchInfo("match123");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/match123"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {
@@ -123,6 +165,12 @@ describe("Riot API helpers", () => {
       const result = await fetchMatchTimeline("match123");
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/matches/match123/timeline"),
+        expect.objectContaining({
+          headers: { "X-Riot-Token": "test-api-key" },
+        }),
+      );
     });
 
     it("throws an error when fetch fails", async () => {

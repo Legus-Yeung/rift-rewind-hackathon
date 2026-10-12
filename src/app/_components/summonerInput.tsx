@@ -11,10 +11,6 @@ import Link from "next/link";
  * @param input - The string to be sanitized
  * @returns A sanitized version of the input string
  */
-function sanitizeInput(input: string): string {
-  return input.toLowerCase().replaceAll(/\s+/g, "");
-}
-
 interface SummonerInputProps {
   /** The base route to navigate to (e.g., "summoner" or "profile") */
   baseRoute: string;
@@ -27,8 +23,12 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
   const router: AppRouterInstance = useRouter();
 
   const handleConfirm = async () => {
+    const trimmedGameName = gameName.trim();
+    const trimmedTagLine = tagLine.trim();
+    if (!trimmedGameName || !trimmedTagLine) return;
+
     router.push(
-      `${baseUrl}/${baseRoute}/${sanitizeInput(gameName)}-${sanitizeInput(tagLine)}`,
+      `${baseUrl}/${baseRoute}/${encodeURIComponent(trimmedGameName)}-${encodeURIComponent(trimmedTagLine)}`,
     );
   };
 
@@ -39,6 +39,7 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
           Summoner Name
           <input
             type="text"
+            required
             className="border-border bg-background/70 text-foreground/90 placeholder-muted-foreground focus:ring-primary h-10 border px-3 focus:ring-2 focus:outline-none"
             value={gameName}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
@@ -58,6 +59,7 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
           Tagline
           <input
             type="text"
+            required
             className="border-border bg-background/70 text-foreground/90 placeholder-muted-foreground focus:ring-primary h-10 border px-3 focus:ring-2 focus:outline-none"
             maxLength={5}
             value={tagLine}
@@ -70,6 +72,7 @@ export default function SummonerInput({ baseRoute }: SummonerInputProps) {
         <button
           className="btn text-primary-foreground !rounded-none"
           onClick={handleConfirm}
+          disabled={!gameName.trim() || !tagLine.trim()}
         >
           Confirm
         </button>
